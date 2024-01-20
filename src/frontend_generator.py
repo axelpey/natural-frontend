@@ -18,7 +18,7 @@ class FrontendGenerator:
         self.prompt.append(
             {
                 "role": "system",
-                "content": f"You will be given a {framework_name} codebase."
+                "content": f"You will be given a {framework_name} codebase for an API and a user type with a specific use case."
             }
         )
 
@@ -26,18 +26,22 @@ class FrontendGenerator:
         self.prompt.append(
             {
                 "role": "system",
-                "content": api_source
+                "content": f"Codebase: \n{api_source}\n"
             }
         )
 
-    def generate_frontend_code(self, question):
+    def generate_frontend_code(self, use_case):
         response = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 *self.prompt,
                 {
                     "role": "user",
-                    "content": f"Generate a simple HTML frontend code for this API. Don't import any module. GIVE ME ONLY CODE, NOTHING ELSE.",
+                    "content": f"User type: {use_case}",
+                },
+                {
+                    "role": "user",
+                    "content": f"Generate a simple HTML frontend interface to this API tailored to this user type (a form page, for instance). GIVE ME ONLY HTML CODE, NOTHING ELSE.",
                 },
             ],
         )
