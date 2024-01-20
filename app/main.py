@@ -5,7 +5,7 @@ from app.models import Book
 
 app = FastAPI()
 
-app = add_natural_frontend(app)
+app = add_natural_frontend(app)  # color scheme, forced personas etc.
 
 # In-memory 'database' for prototype
 books_db = [

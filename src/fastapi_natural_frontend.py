@@ -115,7 +115,10 @@ def add_natural_frontend(app: FastAPI):
 
         print(potential_personas)
 
-        return templates.TemplateResponse("queryForm.html", {"request": request})
+        return templates.TemplateResponse(
+            "queryForm.html",
+            {"request": request, "potential_personas": potential_personas["results"]},
+        )
 
     @app.post("/gen_frontend/", response_class=HTMLResponse)
     async def handle_form(question: str = Form(...)):

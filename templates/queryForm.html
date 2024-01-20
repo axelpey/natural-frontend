@@ -68,14 +68,33 @@
   </head>
   <body>
     <form action="/gen_frontend" method="post">
-      <h1>Ask a Question</h1>
+      <h1>Customize Your API Experience</h1>
+      <p>
+        Select a persona to receive a tailored frontend interface for this API:
+      </p>
       <div>
-        <label for="question">Question:</label>
-        <input type="text" id="question" name="question" required />
+        <label for="persona">Selected Persona:</label>
+        <input type="text" id="persona" name="persona" required />
       </div>
       <div>
-        <button type="submit">Ask</button>
+        <h2>Potential Personas</h2>
+        {% for persona in potential_personas %}
+        <button
+          type="button"
+          onclick="selectPersona('{{ persona.description }}')"
+        >
+          {{ persona.persona }}
+        </button>
+        {% endfor %}
+      </div>
+      <div>
+        <button type="submit">Generate Frontend</button>
       </div>
     </form>
+    <script>
+      function selectPersona(description) {
+        document.getElementById("persona").value = description;
+      }
+    </script>
   </body>
 </html>
