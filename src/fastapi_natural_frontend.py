@@ -1,7 +1,9 @@
 import openai
 import json
+from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
-from fastapi import FastAPI
+from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Request
 from typing import Any, Dict
 
 from .helpers import aggregate_all_api_routes, create_seed_prompt
@@ -11,6 +13,8 @@ RESULT_VARIABLE_NAME = "axel"
 SEED_PROMPT = create_seed_prompt("FastApi", "Python", RESULT_VARIABLE_NAME, "zorglub")
 
 ASK_ENDPOINT = "ask"
+
+templates = Jinja2Templates(directory="templates")
 
 # Load OpenAI key from creds.json
 with open("creds.json") as f:
@@ -39,13 +43,10 @@ def add_natural_frontend(app: FastAPI):
 
         print("Natural Frontend was initiated successfully")
 
-    @app.get("/frontend/")
-    async def frontend(query: str) -> Dict[str, Any]:
-        # Send a basic frontend UI to the user asking what they want to see
+    @app.get("/frontend/", response_class=HTMLResponse)
+    async def frontend(request: Request):
+        return templates.TemplateResponse("queryForm.html", {"request": request})
 
-        response = "REACT CODE EMBEDDED IN A SCRIPT"
-
-        return response
 
     @app.get("/gen_frontend/")
     async def generate_frontend() -> Dict[str, Any]:
