@@ -1,5 +1,5 @@
-import openai
-import json
+import logging
+
 from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
@@ -18,6 +18,8 @@ RESULT_VARIABLE_NAME = "axel"
 API_DOC_GEN_PROMPT = []
 
 ASK_ENDPOINT = "frontend"
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 templates = Jinja2Templates(directory="templates")
 
