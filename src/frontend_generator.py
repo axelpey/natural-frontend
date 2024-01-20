@@ -1,6 +1,6 @@
 import json
 
-import openai
+from openai import OpenAI
 
 class FrontendGenerator:
     def __init__(self):
@@ -8,7 +8,7 @@ class FrontendGenerator:
             creds = json.load(f)
             if not "key" in creds:
                 raise RuntimeError("Please provide your OpenAI token in creds.json as 'key'")
-        self.client = openai.OpenAI(api_key=creds["key"])
+        self.client = OpenAI(api_key=creds["key"])
         self.prompt = []
 
     def seed_prompt(
