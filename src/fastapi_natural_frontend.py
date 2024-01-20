@@ -123,12 +123,10 @@ def add_natural_frontend(app: FastAPI):
         )
 
     @app.post("/gen_frontend/", response_class=HTMLResponse)
-    async def handle_form(question: str = Form(...)):
+    async def handle_form(persona: str = Form(...)):
         # With the query in hand, send it to the NLP model
         # Handle the processed query
-        response_content = frontend_generator.generate_frontend_code(question)
-
-        print(response_content)
+        response_content = frontend_generator.generate_frontend_code(persona)
 
         return HTMLResponse(content=response_content)
 

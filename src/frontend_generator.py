@@ -32,7 +32,7 @@ class FrontendGenerator:
 
     def generate_frontend_code(self, use_case):
         response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4-1106-preview",
             messages=[
                 *self.prompt,
                 {
@@ -41,9 +41,14 @@ class FrontendGenerator:
                 },
                 {
                     "role": "user",
-                    "content": f"Generate a simple HTML frontend interface to this API tailored to this user type (a form page, for instance). GIVE ME ONLY HTML CODE, NOTHING ELSE.",
+                    "content": f"Generate the working HTML code (with JS included) for a single-page interface to the given API. Only point to the subset of actions useful to this user type. Just give me code, nothing else.",
                 },
             ],
         )
 
-        return response.choices[0].message.content
+        generated_res = response.choices[0].message.content
+
+        if "```html" in generated_res:
+            return generated_res.split("```html")[1].split("```")[0]
+
+        return generated_res
