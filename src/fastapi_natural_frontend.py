@@ -41,6 +41,9 @@ def add_natural_frontend(app: FastAPI):
             create_api_short_documentation_prompt(aggregated_api_source)
         )
 
+        frontend_generator.seed_prompt("FastAPI")
+        frontend_generator.add_api_source(aggregated_api_source)
+
         print("Natural Frontend was initiated successfully")
 
     @app.get("/frontend/", response_class=HTMLResponse)
@@ -70,18 +73,12 @@ def add_natural_frontend(app: FastAPI):
 
     @app.post("/gen_frontend/", response_class=HTMLResponse)
     async def handle_form(question: str = Form(...)):
-        # FIXME: This is a hack to get the frontend code
-        if False:
-            # With the query in hand, send it to the NLP model
-            frontend_code = frontend_generator.generate_frontend_code(SEED_PROMPT)
+        # With the query in hand, send it to the NLP model
+        # Handle the processed query
+        response_content = frontend_generator.generate_frontend_code(question)
 
-            def generate_frontend_code(frontend_code):
-                return "REACT CODE EMBEDDED IN AN HTML PAGE WITH A SCRIPT TAG AND MINIFIED REACT BASE"
+        print(response_content)
 
-            # Handle the processed query
-            response_content = generate_frontend_code(frontend_code)
-
-        response_content = f"<html><body><h2>You asked: {question}</h2></body></html>"
         return HTMLResponse(content=response_content)
 
     return app

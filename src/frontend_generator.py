@@ -9,15 +9,35 @@ class FrontendGenerator:
             if not "key" in creds:
                 raise RuntimeError("Please provide your OpenAI token in creds.json as 'key'")
         self.client = openai.OpenAI(api_key=creds["key"])
+        self.prompt = []
 
-    def generate_frontend_code(self, seeded_prompt):
+    def seed_prompt(
+        self,
+        framework_name: str
+    ):
+        self.prompt.append(
+            {
+                "role": "system",
+                "content": f"You will be given a {framework_name} codebase."
+            }
+        )
+
+    def add_api_source(self, api_source):
+        self.prompt.append(
+            {
+                "role": "system",
+                "content": api_source
+            }
+        )
+
+    def generate_frontend_code(self, question):
         response = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                *seeded_prompt,
+                *self.prompt,
                 {
                     "role": "user",
-                    "content": f"Generate a frontend for this API",
+                    "content": f"Generate a simple HTML frontend code for this API. Don't import any module. GIVE ME ONLY CODE, NOTHING ELSE.",
                 },
             ],
         )
