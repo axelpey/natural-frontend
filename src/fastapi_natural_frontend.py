@@ -3,10 +3,6 @@ import json
 from fastapi.routing import APIRoute
 from fastapi import FastAPI
 from typing import Any, Dict
-import asyncio
-import nest_asyncio
-
-nest_asyncio.apply()
 
 from .helpers import aggregate_all_api_routes, create_seed_prompt
 
@@ -46,11 +42,11 @@ def add_natural_frontend(app: FastAPI):
     @app.get("/frontend/")
     async def frontend(query: str) -> Dict[str, Any]:
         # Send a basic frontend UI to the user asking what they want to see
-        
+
         response = "REACT CODE EMBEDDED IN A SCRIPT"
-        
+
         return response
-    
+
     @app.get("/gen_frontend/")
     async def generate_frontend() -> Dict[str, Any]:
         # With the query in hand, send it to the NLP model
@@ -66,7 +62,7 @@ def add_natural_frontend(app: FastAPI):
         )
 
         frontend_code = response.choices[0].message.content
-        
+
         def generate_frontend_code(frontend_code):
             return "REACT CODE EMBEDDED IN AN HTML PAGE WITH A SCRIPT TAG AND MINIFIED REACT BASE"
 
