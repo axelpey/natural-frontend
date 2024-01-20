@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ask Form</title>
     <style>
+      @keyframes rotateGradient {
+        0% {
+          border-image-source: linear-gradient(0deg, green, pink);
+        }
+        25% {
+          border-image-source: linear-gradient(90deg, green, pink);
+        }
+        50% {
+          border-image-source: linear-gradient(180deg, green, pink);
+        }
+        75% {
+          border-image-source: linear-gradient(270deg, green, pink);
+        }
+        100% {
+          border-image-source: linear-gradient(360deg, green, pink);
+        }
+      }
+
       body {
         display: flex;
         justify-content: center;
@@ -34,14 +52,14 @@
       }
       button {
         padding: 10px 20px;
-        border: 2px solid transparent;
-        background-image: linear-gradient(lightblue, pink),
-          linear-gradient(to right, green, pink);
-        background-origin: border-box;
         border-radius: 5px;
         color: white;
         font-weight: bold;
         cursor: pointer;
+        background-image: linear-gradient(lightblue, pink);
+        border: 5px solid;
+        border-image-slice: 1;
+        animation: rotateGradient 1s linear infinite;
       }
       button:hover {
         opacity: 0.9;
