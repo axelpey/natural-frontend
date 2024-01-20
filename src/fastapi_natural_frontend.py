@@ -3,27 +3,21 @@ import json
 from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from typing import Any, Dict
 
 from .helpers import aggregate_all_api_routes, create_seed_prompt
+from .frontend_generator import FrontendGenerator
 
 RESULT_VARIABLE_NAME = "axel"
 
 SEED_PROMPT = create_seed_prompt("FastApi", "Python", RESULT_VARIABLE_NAME, "zorglub")
 
-ASK_ENDPOINT = "ask"
+ASK_ENDPOINT = "frontend"
 
 templates = Jinja2Templates(directory="templates")
 
-# Load OpenAI key from creds.json
-with open("creds.json") as f:
-    creds = json.load(f)
-    if not "key" in creds:
-        raise RuntimeError("Please provide your OpenAI token in creds.json as 'key'")
-
-client = openai.OpenAI(api_key=creds["key"])
-
+frontend_generator = FrontendGenerator()
 
 def add_natural_frontend(app: FastAPI):
     @app.on_event("startup")
@@ -36,7 +30,7 @@ def add_natural_frontend(app: FastAPI):
         aggregated_api_source = aggregate_all_api_routes(
             app.routes,
             lambda r: not isinstance(r, APIRoute)
-            or r.endpoint.__name__ == ASK_ENDPOINT,
+            or ASK_ENDPOINT in r.endpoint.__name__,
         )
 
         SEED_PROMPT.append({"role": "user", "content": aggregated_api_source})
