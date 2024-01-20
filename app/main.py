@@ -2,17 +2,11 @@ from fastapi import FastAPI, HTTPException
 
 from src.fastapi_natural_frontend import add_natural_frontend
 from app.models import Book
+from app.db import books_db
 
 app = FastAPI()
 
 app = add_natural_frontend(app)  # color scheme, forced personas etc.
-
-# In-memory 'database' for prototype
-books_db = [
-    {"id": 1, "title": "1984", "author": "George Orwell"},
-    {"id": 2, "title": "To Kill a Mockingbird", "author": "Harper Lee"},
-]
-
 
 @app.get("/books")
 async def get_books():
