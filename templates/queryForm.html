@@ -1,20 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ask Form</title>
-</head>
-<body>
-    <h1>Ask a Question</h1>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(to right, lightblue, pink);
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+      form {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input[type="text"] {
+        margin-bottom: 20px;
+        padding: 10px;
+        width: calc(100% - 22px);
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        padding: 10px 20px;
+        border: 2px solid transparent;
+        background-image: linear-gradient(lightblue, pink),
+          linear-gradient(to right, green, pink);
+        background-origin: border-box;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
     <form action="/ask" method="post">
-        <div>
-            <label for="question">Question:</label>
-            <input type="text" id="question" name="question" required>
-        </div>
-        <div>
-            <button type="submit">Ask</button>
-        </div>
+      <h1>Ask a Question</h1>
+      <div>
+        <label for="question">Question:</label>
+        <input type="text" id="question" name="question" required />
+      </div>
+      <div>
+        <button type="submit">Ask</button>
+      </div>
     </form>
-</body>
+  </body>
 </html>

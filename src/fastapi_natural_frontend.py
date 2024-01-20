@@ -47,7 +47,6 @@ def add_natural_frontend(app: FastAPI):
     async def frontend(request: Request):
         return templates.TemplateResponse("queryForm.html", {"request": request})
 
-
     @app.get("/gen_frontend/")
     async def generate_frontend() -> Dict[str, Any]:
         # With the query in hand, send it to the NLP model
