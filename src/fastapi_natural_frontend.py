@@ -34,7 +34,7 @@ def add_natural_frontend(app: FastAPI):
         aggregated_api_source = aggregate_all_api_routes(
             app.routes,
             lambda r: not isinstance(r, APIRoute)
-            or r.endpoint.__name__ in ["/frontend/", "/gen_frontend/"],
+            or r.endpoint.__name__ in ["handle_form", "frontend"],
         )
 
         API_DOC_GEN_PROMPT.extend(
@@ -52,19 +52,22 @@ def add_natural_frontend(app: FastAPI):
             model="gpt-3.5-turbo", messages=API_DOC_GEN_PROMPT
         )
 
-        print(documentation.choices[0].message.content)
-
         potential_roles_response = frontend_generator.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-1106",
             messages=[
                 {
                     "role": "user",
-                    "content": f"Give me the most likely roles a user can have when using the API with the following documentation. "
-                    + "We're talking roles in the sense of user personas, not roles in the sense of permissions. "
+                    "content": "Given the following API documentation, please generate a set of 5 "
+                    + "simple user personas that a typical user of this API might fit into. "
+                    + "These personas should help in understanding the diverse needs and backgrounds "
+                    + "of the users, allowing for the development of a customized frontend interface "
+                    + "that caters to their specific requirements and interests."
+                    + " Limit each description to 10 words and return as a json object like {results: {persona: str; description: str;}[] }"
                     + "\n\nAPI Documentation;\n\n"
                     + documentation.choices[0].message.content,
                 },
             ],
+            response_format={"type": "json_object"},
         )
 
         print(potential_roles_response.choices[0].message.content)
