@@ -19,6 +19,19 @@ def create_seed_prompt(
     ]
 
 
+def create_api_short_documentation_prompt(routes_code: str):
+    return [
+        {
+            "role": "system",
+            "content": f"Write a short documentation for each route. What it does, what it takes as input, what it returns.",
+        },
+        {
+            "role": "user",
+            "content": routes_code,
+        },
+    ]
+
+
 # TODO: Make route a Struct with just a "code" member to be framework-agnostic
 def aggregate_all_api_routes(routes: list[Any], exclude_route: Callable[[Any], bool]):
     concat_sources = []
