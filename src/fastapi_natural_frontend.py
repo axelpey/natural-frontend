@@ -47,28 +47,20 @@ def add_natural_frontend(app: FastAPI):
     async def frontend(request: Request):
         return templates.TemplateResponse("queryForm.html", {"request": request})
 
-    @app.get("/gen_frontend/")
-    async def generate_frontend() -> Dict[str, Any]:
-        # With the query in hand, send it to the NLP model
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                *SEED_PROMPT,
-                {
-                    "role": "user",
-                    "content": f"Generate a frontend for this API",
-                },
-            ],
-        )
+    @app.post("/gen_frontend/", response_class=HTMLResponse)
+    async def handle_form(question: str = Form(...)):
+        # FIXME: This is a hack to get the frontend code
+        if False:
+            # With the query in hand, send it to the NLP model
+            frontend_code = frontend_generator.generate_frontend_code(SEED_PROMPT)
 
-        frontend_code = response.choices[0].message.content
+            def generate_frontend_code(frontend_code):
+                return "REACT CODE EMBEDDED IN AN HTML PAGE WITH A SCRIPT TAG AND MINIFIED REACT BASE"
 
-        def generate_frontend_code(frontend_code):
-            return "REACT CODE EMBEDDED IN AN HTML PAGE WITH A SCRIPT TAG AND MINIFIED REACT BASE"
+            # Handle the processed query
+            response_content = generate_frontend_code(frontend_code)
 
-        # Handle the processed query
-        # response = handle_processed_query(processed_query)
-        response = generate_frontend_code(frontend_code)
-        return response
+        response_content = f"<html><body><h2>You asked: {question}</h2></body></html>"
+        return HTMLResponse(content=response_content)
 
     return app
