@@ -25,7 +25,7 @@ with open("creds.json") as f:
 client = openai.OpenAI(api_key=creds["key"])
 
 
-def add_nlp_query_route(app: FastAPI):
+def add_natural_frontend(app: FastAPI):
     @app.on_event("startup")
     async def on_startup():
         # Initialize your NLP model here
@@ -41,62 +41,38 @@ def add_nlp_query_route(app: FastAPI):
 
         SEED_PROMPT.append({"role": "user", "content": aggregated_api_source})
 
-        print("Natural Query was initiated successfully")
+        print("Natural Frontend was initiated successfully")
 
-    @app.get("/ask/{query}")
-    async def ask(query: str) -> Dict[str, Any]:
-        # Step 2: Load the model
-        # Load GPT-3.5
+    @app.get("/frontend/")
+    async def frontend(query: str) -> Dict[str, Any]:
+        # Send a basic frontend UI to the user asking what they want to see
+        
+        response = "REACT CODE EMBEDDED IN A SCRIPT"
+        
+        return response
+    
+    @app.get("/gen_frontend/")
+    async def generate_frontend() -> Dict[str, Any]:
+        # With the query in hand, send it to the NLP model
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 *SEED_PROMPT,
                 {
                     "role": "user",
-                    "content": f"What's the code equivalent of this query: {query}",
+                    "content": f"Generate a frontend for this API",
                 },
             ],
         )
 
-        code = response.choices[0].message.content
-
-        api_routes = {route.name: route.endpoint for route in app.routes}
-
-        axel = ""
-
-        def exec_code(code):
-            async def zorglub(route_name, params={}):
-                await api_routes[route_name](**params)
-
-            s = f"""
-global result, async_exec_coro
-async def async_exec():
-    global result
-    {code}
-async_exec_coro = async_exec()
-            """
-
-            print(s)
-
-            exec(s, globals(), locals())
-
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(async_exec_coro)
-
-            return result
-
-        print(exec_code('zorglub("get_books")'))
-        return {}
-
-        print(code)
-
-        exec(code)
-
-        print(axel)
+        frontend_code = response.choices[0].message.content
+        
+        def generate_frontend_code(frontend_code):
+            return "REACT CODE EMBEDDED IN AN HTML PAGE WITH A SCRIPT TAG AND MINIFIED REACT BASE"
 
         # Handle the processed query
         # response = handle_processed_query(processed_query)
-        response = {"prompt": response.choices[0].message.content, "result": ""}
+        response = generate_frontend_code(frontend_code)
         return response
 
     return app

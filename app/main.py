@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException
 
-from src.fastapi_natural_query import add_nlp_query_route
+from src.fastapi_natural_frontend import add_natural_frontend
 from app.models import Book
 
 app = FastAPI()
 
-app = add_nlp_query_route(app)
+app = add_natural_frontend(app)
 
 # In-memory 'database' for prototype
 books_db = [
