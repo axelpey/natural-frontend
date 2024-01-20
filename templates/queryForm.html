@@ -3,34 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
     <title>Ask Form</title>
     <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
       @keyframes rotateGradient {
         0% {
-          border-image-source: linear-gradient(0deg, green, pink);
+          border-image-source: linear-gradient(
+            0deg,
+            {{colors[0]}},
+            {{colors[1]}}
+          );
         }
         25% {
-          border-image-source: linear-gradient(90deg, green, pink);
+          border-image-source: linear-gradient(
+            90deg,
+            {{colors[0]}},
+            {{colors[1]}}
+          );
         }
         50% {
-          border-image-source: linear-gradient(180deg, green, pink);
+          border-image-source: linear-gradient(
+            180deg,
+            {{colors[0]}},
+            {{colors[1]}}
+          );
         }
         75% {
-          border-image-source: linear-gradient(270deg, green, pink);
+          border-image-source: linear-gradient(
+            270deg,
+            {{colors[0]}},
+            {{colors[1]}}
+          );
         }
         100% {
-          border-image-source: linear-gradient(360deg, green, pink);
+          border-image-source: linear-gradient(
+            360deg,
+            {{colors[0]}},
+            {{colors[1]}}
+          );
         }
       }
 
       body {
+        font-family: "Poppins", Arial, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background: linear-gradient(to right, lightblue, pink);
+        background: radial-gradient({{colors[2]}}, {{colors[1]}});
         margin: 0;
-        font-family: Arial, sans-serif;
       }
       form {
         background: white;
@@ -52,48 +79,102 @@
       }
       button {
         padding: 10px 20px;
-        border-radius: 5px;
+        border-radius: 3px;
         color: white;
         font-weight: bold;
         cursor: pointer;
-        background-image: linear-gradient(lightblue, pink);
-        border: 5px solid;
+        background-image: linear-gradient({{colors[2]}}, {{colors[1]}});
+        border: 3px solid;
         border-image-slice: 1;
         animation: rotateGradient 1s linear infinite;
       }
       button:hover {
         opacity: 0.9;
       }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .persona-buttons button {
+        margin: 5px;
+        padding: 10px;
+        border-radius: 5px;
+        border: none;
+        background-color: #f0f0f0; /* A neutral color for non-selected buttons */
+        color: #333;
+        transition: background-color 0.3s;
+        background-image: none;
+      }
+      .persona-buttons button.active {
+        background-color: #a1eafb; /* A highlighted color for the active/selected button */
+      }
+      .persona-buttons {
+        margin-bottom: 20px;
+      }
+      .persona-buttons h2 {
+        margin-bottom: 5px;
+      }
+      .generate-btn {
+        /* Styling for the generate button, could match persona buttons */
+      }
+      .input-icon {
+        position: relative;
+      }
+
+      .icon {
+        position: absolute;
+        left: 10px;
+        top: calc(50% - 0.5em); /* Adjusts the icon to vertically center */
+      }
+
+      .input-with-icon {
+        padding-left: 30px; /* Makes space for the icon inside the input field */
+      }
+
+      .fa-magic {
+        margin-right: 5px; /* Adds some space between the icon and the button text */
+      }
     </style>
   </head>
   <body>
     <form action="/gen_frontend" method="post">
-      <h1>Customize Your API Experience</h1>
-      <p>
-        Select a persona to receive a tailored frontend interface for this API:
-      </p>
+      <h1>Natural Frontend</h1>
+      <p>Pick your persona for your API experience, we'll handle the rest!</p>
       <div>
-        <label for="persona">Selected Persona:</label>
-        <input type="text" id="persona" name="persona" required />
+        <label for="persona">Who are you? </label>
+        <div class="input-icon">
+          <i class="fa fa-user icon"></i>
+          <input
+            type="text"
+            id="persona"
+            name="persona"
+            class="input-with-icon"
+            placeholder="{{ potential_personas[0].persona }}: {{ potential_personas[0].description }}"
+            required
+          />
+        </div>
       </div>
-      <div>
-        <h2>Potential Personas</h2>
+
+      <div class="persona-buttons">
+        <h2>Potential Personas for this API</h2>
         {% for persona in potential_personas %}
         <button
           type="button"
-          onclick="selectPersona('{{ persona.description }}')"
+          onclick="selectPersona('{{persona.persona}}', '{{ persona.description }}')"
         >
           {{ persona.persona }}
         </button>
         {% endfor %}
       </div>
       <div>
-        <button type="submit">Generate Frontend</button>
+        <button type="submit" class="generate-btn">
+          <i class="fa fa-magic"></i> Generate Frontend
+        </button>
       </div>
     </form>
     <script>
-      function selectPersona(description) {
-        document.getElementById("persona").value = description;
+      function selectPersona(persona, description) {
+        document.getElementById("persona").value = persona + ": " + description;
       }
     </script>
   </body>

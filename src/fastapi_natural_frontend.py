@@ -119,7 +119,15 @@ def add_natural_frontend(app: FastAPI):
 
         return templates.TemplateResponse(
             "queryForm.html",
-            {"request": request, "potential_personas": potential_personas["results"]},
+            {
+                "request": request,
+                "potential_personas": potential_personas["results"],
+                "colors": [
+                    "green",
+                    "pink",
+                    "lightblue"
+                ],  # Replace with your actual colors
+            },
         )
 
     @app.post("/gen_frontend/", response_class=HTMLResponse)
