@@ -52,7 +52,7 @@ def add_natural_frontend(app: FastAPI):
             model="gpt-3.5-turbo", messages=API_DOC_GEN_PROMPT
         )
 
-        potential_roles_response = frontend_generator.client.chat.completions.create(
+        potential_personas_response = frontend_generator.client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
             messages=[
                 {
@@ -70,7 +70,50 @@ def add_natural_frontend(app: FastAPI):
             response_format={"type": "json_object"},
         )
 
-        print(potential_roles_response.choices[0].message.content)
+        potential_personas_str = potential_personas_response.choices[0].message.content
+
+        # Now parse it. If it does not work, query gpt-3.5 again to clean it in the right format.
+        # Do a recursive function that calls gpt-3.5 if the parsing fails.
+        def parse_potential_personas(personas: str):
+            try:
+                parsed_json = json.loads(personas)
+
+                # Check the keys are correct
+                if not "results" in parsed_json:
+                    raise Exception("The key 'results' is missing")
+                if not isinstance(parsed_json["results"], list):
+                    raise Exception("The key 'results' is not a list")
+                for result in parsed_json["results"]:
+                    if not "persona" in result:
+                        raise Exception("The key 'persona' is missing")
+                    if not isinstance(result["persona"], str):
+                        raise Exception("The key 'persona' is not a string")
+                    if not "description" in result:
+                        raise Exception("The key 'description' is missing")
+                    if not isinstance(result["description"], str):
+                        raise Exception("The key 'description' is not a string")
+
+                return parsed_json
+            except:
+                print("Parsing failed. Trying again...")
+                response = frontend_generator.client.chat.completions.create(
+                    model="gpt-3.5-turbo-1106",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": "The following JSON object could not be parsed. "
+                            + "Please reformat it to give me the answer as a json object like {results: {persona: str; description: str;}[] }"
+                            + f"\n\n{personas}\n\n",
+                        },
+                    ],
+                    response_format={"type": "json_object"},
+                )
+
+                return parse_potential_personas(response.choices[0].message.content)
+
+        potential_personas = parse_potential_personas(potential_personas_str)
+
+        print(potential_personas)
 
         return templates.TemplateResponse("queryForm.html", {"request": request})
 
