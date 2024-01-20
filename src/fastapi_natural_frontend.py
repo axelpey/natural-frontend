@@ -1,4 +1,5 @@
 import logging
+import json
 
 from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
@@ -19,7 +20,9 @@ API_DOC_GEN_PROMPT = []
 
 ASK_ENDPOINT = "frontend"
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 templates = Jinja2Templates(directory="templates")
 
@@ -76,8 +79,11 @@ def add_natural_frontend(app: FastAPI):
 
         # Now parse it. If it does not work, query gpt-3.5 again to clean it in the right format.
         # Do a recursive function that calls gpt-3.5 if the parsing fails.
-        def parse_potential_personas(personas: str):
+        def parse_potential_personas(personas: str, retries=5):
             try:
+                if retries == 0:
+                    return {"results": []}
+
                 parsed_json = json.loads(personas)
 
                 # Check the keys are correct
@@ -111,7 +117,9 @@ def add_natural_frontend(app: FastAPI):
                     response_format={"type": "json_object"},
                 )
 
-                return parse_potential_personas(response.choices[0].message.content)
+                return parse_potential_personas(
+                    response.choices[0].message.content, retries - 1
+                )
 
         potential_personas = parse_potential_personas(potential_personas_str)
 
@@ -125,7 +133,7 @@ def add_natural_frontend(app: FastAPI):
                 "colors": [
                     "green",
                     "pink",
-                    "lightblue"
+                    "lightblue",
                 ],  # Replace with your actual colors
             },
         )
