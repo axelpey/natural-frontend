@@ -88,29 +88,7 @@ def NaturalFrontend(app: FastAPI, options: NaturalFrontendOptions = None):
 
     @app.get("/frontend/", response_class=HTMLResponse)
     async def frontend(request: Request):
-        documentation = frontend_generator.client.chat.completions.create(
-            model="gpt-3.5-turbo", messages=API_DOC_GEN_PROMPT
-        )
-
-        potential_personas_response = frontend_generator.client.chat.completions.create(
-            model="gpt-3.5-turbo-1106",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Given the following API documentation, please generate a set of {5 - (len(options.personas) if options.personas else 0)} "
-                    + "simple user personas that a typical user of this API might fit into. "
-                    + "These personas should help in understanding the diverse needs and backgrounds "
-                    + "of the users, allowing for the development of a customized frontend interface "
-                    + "that caters to their specific requirements and interests."
-                    + " Limit each description to 10 words and return as a json object like {results: {persona: str; description: str;}[] }"
-                    + "\n\nAPI Documentation;\n\n"
-                    + documentation.choices[0].message.content,
-                },
-            ],
-            response_format={"type": "json_object"},
-        )
-
-        potential_personas_str = potential_personas_response.choices[0].message.content
+        potential_personas_str = frontend_generator.generate_potential_personas(API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0)
 
         # Now parse it. If it does not work, query gpt-3.5 again to clean it in the right format.
         # Do a recursive function that calls gpt-3.5 if the parsing fails.
