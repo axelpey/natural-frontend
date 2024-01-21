@@ -14,9 +14,7 @@ Make your fastAPI generate a frontend to interact with it in one line
 
 1. Make sure you have [Docker](https://docs.docker.com/engine/install/) installed
 
-2. Run `docker build -t my_cool_image_name`
-
-3. Run `docker run -d --name my_cool_container_name -p 80:80 my_cool_image_name`
+2. Run `docker compose up --build`
 
 ### Notes
 
