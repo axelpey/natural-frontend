@@ -102,7 +102,7 @@ def NaturalFrontend(
 
     @app.get("/frontend/", response_class=HTMLResponse)
     async def frontend(request: Request, cache: Cache = Depends()):
-        cache_key = "frontend"
+        cache_key = "frontend_personas"
     
         # Try to get cached response
         potential_personas = cache.get(cache_key)
@@ -189,11 +189,18 @@ def NaturalFrontend(
 
     @app.post("/gen_frontend/", response_class=HTMLResponse)
     async def handle_form(persona: str = Form(...)):
+        cache_key = f"html_frontend_{persona.split()[0]}"
+        response_content = cache.get(cache_key)
+        if response_content:
+            return HTMLResponse(content=response_content)
+
         # With the query in hand, send it to the NLP model
         # Handle the processed query
         response_content = frontend_generator.generate_frontend_code(
             persona, options.colors
         )
+
+        cache.set(cache_key, response_content)
 
         return HTMLResponse(content=response_content)
 

@@ -1,7 +1,4 @@
-import json
-
 from openai import OpenAI
-
 
 class FrontendGenerator:
     def __init__(self, openai_api_key: str):
