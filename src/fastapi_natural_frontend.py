@@ -5,9 +5,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, Request, Form
-from typing import Any, Dict, List, Optional
+from fastapi import Depends, FastAPI, Form, Request
+from typing import Dict, List
 
+from .cache import Cache
 from .frontend_generator import FrontendGenerator
 from .helpers import (
     aggregate_all_api_routes,
@@ -26,6 +27,7 @@ logging.basicConfig(
 
 templates = Jinja2Templates(directory="templates")
 
+cache = Cache()
 
 # Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
 # And personas needs to be a list of dicts with keys "persona" and "description"
@@ -99,10 +101,28 @@ def NaturalFrontend(
         print("Natural Frontend was initiated successfully")
 
     @app.get("/frontend/", response_class=HTMLResponse)
-    async def frontend(request: Request):
-        potential_personas_str = frontend_generator.generate_potential_personas(
-            API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0
+    async def frontend(request: Request, cache: Cache = Depends()):
+        cache_key = "frontend"
+    
+        # Try to get cached response
+        potential_personas = cache.get(cache_key)
+        if potential_personas:
+            return templates.TemplateResponse(
+            "queryForm.html",
+            {
+                "request": request,
+                "potential_personas": potential_personas,
+                "colors": [
+                    "green",
+                    "pink",
+                    "lightblue",
+                ],  # Replace with your actual colors
+            },
         )
+        
+        logging.info("NO CACHE HIT")
+        
+        potential_personas_str = frontend_generator.generate_potential_personas(API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0)
 
         # Now parse it. If it does not work, query gpt-3.5 again to clean it in the right format.
         # Do a recursive function that calls gpt-3.5 if the parsing fails.
@@ -152,7 +172,7 @@ def NaturalFrontend(
             options.personas if options.personas else []
         ) + parse_potential_personas(potential_personas_str)["results"]
 
-        print(potential_personas)
+        cache.set(cache_key, potential_personas)
 
         return templates.TemplateResponse(
             "queryForm.html",
