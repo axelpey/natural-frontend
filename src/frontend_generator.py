@@ -64,11 +64,8 @@ class FrontendGenerator:
                     "content": f"Generate the working HTML code (with JS included) for a single-page interface to the given API. "
                     + "The base url is localhost:80."
                     + "Only point to the subset of actions useful to this user type. "
-                    + (
-                        f"Also style the interface, with this color scheme: {colors}. "
-                        if colors
-                        else ""
-                    )
+                    + "Style the interface like you have some real design skills, this is 2024! "
+                    + (f"Also use this color scheme: {colors}. " if colors else "")
                     + "Just give me code, nothing else.",
                 },
             ],

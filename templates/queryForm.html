@@ -138,6 +138,39 @@
       .fa-user {
         margin-bottom: 5px; /* Adds some space between the icon and the button text */
       }
+
+      .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top: 4px solid #3498db;
+        width: 35px;
+        height: 35px;
+        animation: spin 2s linear infinite;
+        display: none; /* Initially hidden */
+      }
+
+      #buttonOrSpinner {
+        display: flex;
+        justify-content: center;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        25% {
+          transform: rotate(90deg);
+        }
+        50% {
+          transform: rotate(180deg);
+        }
+        75% {
+          transform: rotate(270deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
@@ -171,14 +204,25 @@
         {% endfor %}
       </div>
       <div>
-        <button type="submit" class="generate-btn">
-          <i class="fa fa-magic"></i> Generate Frontend
-        </button>
+        <div id="buttonOrSpinner">
+          <button type="submit" class="generate-btn" onclick="showSpinner()">
+            <i class="fa fa-magic"></i> Generate Frontend
+          </button>
+          <div class="spinner" id="spinner"></div>
+        </div>
       </div>
     </form>
     <script>
       function selectPersona(persona, description) {
         document.getElementById("persona").value = persona + ": " + description;
+      }
+
+      function showSpinner() {
+        document.querySelector(".generate-btn").style.display = "none"; // Hide button
+        document.getElementById("spinner").style.display = "block"; // Show spinner
+
+        // If you are submitting the form, the page will refresh and the spinner won't be necessary.
+        // If you are making an AJAX call, you can handle it here and hide the spinner when the call is complete.
       }
     </script>
   </body>
