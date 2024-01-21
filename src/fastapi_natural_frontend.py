@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI, Request, Form
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from .frontend_generator import FrontendGenerator
 from .helpers import (
@@ -29,7 +29,43 @@ templates = Jinja2Templates(directory="templates")
 frontend_generator = FrontendGenerator()
 
 
-def add_natural_frontend(app: FastAPI):
+# Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
+# And personas needs to be a list of dicts with keys "persona" and "description"
+class NaturalFrontendOptions:
+    def __init__(
+        self,
+        colors: Dict[str, str] = None,
+        personas: List[Dict[str, str]] = None,
+    ):
+        # Check that colors is a dict with keys "primary" and "secondary"
+        if colors is not None:
+            if not isinstance(colors, dict):
+                raise TypeError("colors must be a dict")
+            if not "primary" in colors:
+                raise ValueError("colors must have a 'primary' key")
+            if not "secondary" in colors:
+                raise ValueError("colors must have a 'secondary' key")
+
+        self.colors = colors
+
+        # Check that personas is a list of dicts with keys "persona" and "description", and there's also max 5 of them
+        if personas is not None:
+            if not isinstance(personas, list):
+                raise TypeError("personas must be a list")
+            if len(personas) > 5:
+                raise ValueError("personas must have a maximum of 5 elements")
+            for persona in personas:
+                if not isinstance(persona, dict):
+                    raise TypeError("personas must be a list of dicts")
+                if not "persona" in persona:
+                    raise ValueError("personas must have a 'persona' key")
+                if not "description" in persona:
+                    raise ValueError("personas must have a 'description' key")
+
+        self.personas = personas
+
+
+def NaturalFrontend(app: FastAPI, options: NaturalFrontendOptions = None):
     @app.on_event("startup")
     async def on_startup():
         # Initialize your NLP model here
@@ -62,7 +98,7 @@ def add_natural_frontend(app: FastAPI):
             messages=[
                 {
                     "role": "user",
-                    "content": "Given the following API documentation, please generate a set of 5 "
+                    "content": f"Given the following API documentation, please generate a set of {5 - (len(options.personas) if options.personas else 0)} "
                     + "simple user personas that a typical user of this API might fit into. "
                     + "These personas should help in understanding the diverse needs and backgrounds "
                     + "of the users, allowing for the development of a customized frontend interface "
@@ -121,7 +157,9 @@ def add_natural_frontend(app: FastAPI):
                     response.choices[0].message.content, retries - 1
                 )
 
-        potential_personas = parse_potential_personas(potential_personas_str)
+        potential_personas = (
+            options.personas if options.personas else []
+        ) + parse_potential_personas(potential_personas_str)["results"]
 
         print(potential_personas)
 
@@ -129,7 +167,7 @@ def add_natural_frontend(app: FastAPI):
             "queryForm.html",
             {
                 "request": request,
-                "potential_personas": potential_personas["results"],
+                "potential_personas": potential_personas,
                 "colors": [
                     "green",
                     "pink",
@@ -142,7 +180,9 @@ def add_natural_frontend(app: FastAPI):
     async def handle_form(persona: str = Form(...)):
         # With the query in hand, send it to the NLP model
         # Handle the processed query
-        response_content = frontend_generator.generate_frontend_code(persona)
+        response_content = frontend_generator.generate_frontend_code(
+            persona, options.colors
+        )
 
         return HTMLResponse(content=response_content)
 

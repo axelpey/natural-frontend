@@ -1,13 +1,16 @@
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query
 
-from src.fastapi_natural_frontend import add_natural_frontend
+from src.fastapi_natural_frontend import NaturalFrontend, NaturalFrontendOptions
 from app.models import Book
 from app.db import books_db
 
 app = FastAPI()
 
-app = add_natural_frontend(app)  # color scheme, forced personas etc.
+app = NaturalFrontend(
+    app, NaturalFrontendOptions(colors={"primary": "lightblue", "secondary": "purple"})
+)  # color scheme, forced personas etc.
+
 
 @app.get("/books")
 async def get_books():
