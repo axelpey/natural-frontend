@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 from .frontend_generator import FrontendGenerator
 from .helpers import (
     aggregate_all_api_routes,
-    create_seed_prompt,
     create_api_short_documentation_prompt,
 )
 
