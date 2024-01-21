@@ -4,14 +4,8 @@ from openai import OpenAI
 
 
 class FrontendGenerator:
-    def __init__(self):
-        with open("creds.json") as f:
-            creds = json.load(f)
-            if not "key" in creds:
-                raise RuntimeError(
-                    "Please provide your OpenAI token in creds.json as 'key'"
-                )
-        self.client = OpenAI(api_key=creds["key"])
+    def __init__(self, openai_api_key: str):
+        self.client = OpenAI(api_key=openai_api_key)
         self.prompt = []
 
     def seed_prompt(self, framework_name: str):
@@ -25,7 +19,9 @@ class FrontendGenerator:
     def add_api_source(self, api_source):
         self.prompt.append({"role": "system", "content": f"Codebase: \n{api_source}\n"})
 
-    def generate_potential_personas(self, generated_api_doc, already_generated_persona_num=5):
+    def generate_potential_personas(
+        self, generated_api_doc, already_generated_persona_num=5
+    ):
         documentation = self.client.chat.completions.create(
             model="gpt-3.5-turbo", messages=generated_api_doc
         )

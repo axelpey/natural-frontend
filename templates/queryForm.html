@@ -154,6 +154,20 @@
         justify-content: center;
       }
 
+      .logo {
+        width: 80px;
+        height: 80px;
+        margin-right: 20px;
+      }
+
+      .logo-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -175,7 +189,14 @@
   </head>
   <body>
     <form action="/gen_frontend" method="post">
-      <h1>Natural Frontend</h1>
+      <div class="logo-container">
+        <img
+          src="/static/natural_frontend_logo.png"
+          alt="Natural Frontend Logo"
+          class="logo"
+        />
+        <h1>Natural Frontend</h1>
+      </div>
       <p>Pick your persona for your API experience, we'll handle the rest!</p>
       <div>
         <label for="persona">Who are you? </label>

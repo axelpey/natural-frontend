@@ -4,6 +4,7 @@ import json
 from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, Request, Form
 from typing import Any, Dict, List, Optional
 
@@ -25,15 +26,13 @@ logging.basicConfig(
 
 templates = Jinja2Templates(directory="templates")
 
-frontend_generator = FrontendGenerator()
-
 
 # Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
 # And personas needs to be a list of dicts with keys "persona" and "description"
 class NaturalFrontendOptions:
     def __init__(
         self,
-        colors: Dict[str, str] = None,
+        colors: Dict[str, str] = {"primary": "lightblue", "secondary": "purple"},
         personas: List[Dict[str, str]] = None,
     ):
         # Check that colors is a dict with keys "primary" and "secondary"
@@ -64,7 +63,20 @@ class NaturalFrontendOptions:
         self.personas = personas
 
 
-def NaturalFrontend(app: FastAPI, options: NaturalFrontendOptions = None):
+def NaturalFrontend(
+    app: FastAPI, options: NaturalFrontendOptions = NaturalFrontendOptions()
+):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+    with open("creds.json") as f:
+        creds = json.load(f)
+        if not "key" in creds:
+            raise RuntimeError(
+                "Please provide your OpenAI token in creds.json as 'key'"
+            )
+
+    frontend_generator = FrontendGenerator(openai_api_key=creds["key"])
+
     @app.on_event("startup")
     async def on_startup():
         # Initialize your NLP model here
@@ -88,7 +100,9 @@ def NaturalFrontend(app: FastAPI, options: NaturalFrontendOptions = None):
 
     @app.get("/frontend/", response_class=HTMLResponse)
     async def frontend(request: Request):
-        potential_personas_str = frontend_generator.generate_potential_personas(API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0)
+        potential_personas_str = frontend_generator.generate_potential_personas(
+            API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0
+        )
 
         # Now parse it. If it does not work, query gpt-3.5 again to clean it in the right format.
         # Do a recursive function that calls gpt-3.5 if the parsing fails.
