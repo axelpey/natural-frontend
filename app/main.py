@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query
 
-from src.fastapi_natural_frontend import NaturalFrontend, NaturalFrontendOptions
+from natural_frontend.natural_frontend import NaturalFrontend, NaturalFrontendOptions
 from app.models import Book
 from app.db import books_db
 
