@@ -1,13 +1,18 @@
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query
+import json
 
-from natural_frontend.natural_frontend import NaturalFrontend, NaturalFrontendOptions
+from natural_frontend.natural_frontend import NaturalFrontend
 from app.models import Book
 from app.db import books_db
 
 app = FastAPI()
 
-app = NaturalFrontend(app)
+# Open the creds.json
+with open("creds.json") as f:
+    creds = json.load(f)
+
+app = NaturalFrontend(app, openai_api_key=creds["key"])
 
 
 @app.get("/books")
