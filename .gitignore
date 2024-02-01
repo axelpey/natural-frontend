@@ -163,3 +163,6 @@ creds.json
 
 # Mac OS
 .DS_Store
+
+# NF
+cache/
