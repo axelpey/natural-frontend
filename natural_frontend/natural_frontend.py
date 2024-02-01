@@ -25,7 +25,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="natural_frontend/templates")
 
 cache = Cache()
 
@@ -66,18 +66,11 @@ class NaturalFrontendOptions:
 
 
 def NaturalFrontend(
-    app: FastAPI, options: NaturalFrontendOptions = NaturalFrontendOptions()
+    app: FastAPI, openai_api_key: str, options: NaturalFrontendOptions = NaturalFrontendOptions()
 ):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+    app.mount("/static", StaticFiles(check_dir=False, directory="natural_frontend/static", packages=[("natural_frontend", "static")]), name="static")
 
-    with open("creds.json") as f:
-        creds = json.load(f)
-        if not "key" in creds:
-            raise RuntimeError(
-                "Please provide your OpenAI token in creds.json as 'key'"
-            )
-
-    frontend_generator = FrontendGenerator(openai_api_key=creds["key"])
+    frontend_generator = FrontendGenerator(openai_api_key=openai_api_key)
 
     @app.on_event("startup")
     async def on_startup():
