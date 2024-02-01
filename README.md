@@ -1,6 +1,6 @@
-# fastapi-natural-frontend
+# Natural Frontend
 
-Make your fastAPI generate a frontend to interact with it in one line
+Make your FastAPI generate a frontend to interact with it in one line
 
 ### Running the Application
 
