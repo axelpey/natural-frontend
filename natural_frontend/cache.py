@@ -3,14 +3,14 @@ import os
 import time
 
 class Cache:
-    def __init__(self, directory="cache"):
+    def __init__(self, directory, cache_expiry_time):
         self.directory = directory
         if not os.path.exists(directory):
             try:
                 os.makedirs(directory)
             except:
                 pass
-        self.expiry_time = 600  # 600 seconds cache expiration time
+        self.expiry_time = cache_expiry_time  # 600 seconds cache expiration time
 
     def get_file_path(self, key):
         filename = f"{key}.json"

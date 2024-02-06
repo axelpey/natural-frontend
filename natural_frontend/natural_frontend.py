@@ -6,6 +6,7 @@ from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import Depends, FastAPI, Form, Request
+from typing import Dict, List, Optional
 
 import importlib.resources as pkg_resources
 
@@ -19,8 +20,6 @@ from .helpers import (
 RESULT_VARIABLE_NAME = "axel"
 
 API_DOC_GEN_PROMPT = []
-
-ASK_ENDPOINT = "frontend"
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -36,16 +35,17 @@ class NaturalFrontendOptions:
     def __init__(
         self,
         colors: Dict[str, str] = {"primary": "lightblue", "secondary": "purple"},
-        personas: List[Dict[str, str]] = None,
+        personas: Optional[List[Dict[str, str]]] = None,
+        cache_expiry_time: int = 600,
+        frontend_endpoint: str = "frontend",
     ):
         # Check that colors is a dict with keys "primary" and "secondary"
-        if colors is not None:
-            if not isinstance(colors, dict):
-                raise TypeError("colors must be a dict")
-            if not "primary" in colors:
-                raise ValueError("colors must have a 'primary' key")
-            if not "secondary" in colors:
-                raise ValueError("colors must have a 'secondary' key")
+        if not isinstance(colors, dict):
+            raise TypeError("colors must be a dict")
+        if not "primary" in colors:
+            raise ValueError("colors must have a 'primary' key")
+        if not "secondary" in colors:
+            raise ValueError("colors must have a 'secondary' key")
 
         self.colors = colors
 
@@ -65,15 +65,30 @@ class NaturalFrontendOptions:
 
         self.personas = personas
 
+        # Check that cache_expiry_time is an int
+        if not isinstance(cache_expiry_time, int):
+            raise TypeError("cache_expiry_time must be an int")
+
+        self.cache_expiry_time = cache_expiry_time  # 600 seconds cache expiration time
+
+        # Check that frontend_endpoint is a string
+        if not isinstance(frontend_endpoint, str):
+            raise TypeError("frontend_endpoint must be a string")
+        
+        self.frontend_endpoint = frontend_endpoint
+
 
 def NaturalFrontend(
     app: FastAPI, openai_api_key: str, options: NaturalFrontendOptions = NaturalFrontendOptions()
 ):
     app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
 
+    frontend_endpoint = options.frontend_endpoint
+
     frontend_generator = FrontendGenerator(openai_api_key=openai_api_key)
 
     templates = Jinja2Templates(directory=str(template_directory))
+    cache = Cache(directory=str(cache_directory), cache_expiry_time=options.cache_expiry_time)
 
     @app.on_event("startup")
     async def on_startup():
@@ -96,8 +111,8 @@ def NaturalFrontend(
 
         print("Natural Frontend was initiated successfully")
 
-    @app.get("/frontend/", response_class=HTMLResponse)
-    async def frontend(request: Request, cache: Cache = Depends()):
+    @app.get(f"/{frontend_endpoint}/", response_class=HTMLResponse)
+    async def frontend(request: Request):
         cache_key = "frontend_personas"
     
         # Try to get cached response
@@ -183,7 +198,7 @@ def NaturalFrontend(
             },
         )
 
-    @app.post("/gen_frontend/", response_class=HTMLResponse)
+    @app.post(f"/gen_{frontend_endpoint}/", response_class=HTMLResponse)
     async def handle_form(persona: str = Form(...)):
         cache_key = f"html_frontend_{persona.split()[0]}"
         response_content = cache.get(cache_key)
