@@ -6,7 +6,8 @@ from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import Depends, FastAPI, Form, Request
-from typing import Dict, List
+
+import importlib.resources as pkg_resources
 
 from .cache import Cache
 from .frontend_generator import FrontendGenerator
@@ -25,9 +26,9 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-templates = Jinja2Templates(directory="natural_frontend/templates")
-
-cache = Cache()
+template_directory = pkg_resources.files('natural_frontend').joinpath('templates')
+static_directory = pkg_resources.files('natural_frontend').joinpath('static')
+cache_directory = pkg_resources.files('natural_frontend').joinpath('cache')
 
 # Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
 # And personas needs to be a list of dicts with keys "persona" and "description"
@@ -68,9 +69,11 @@ class NaturalFrontendOptions:
 def NaturalFrontend(
     app: FastAPI, openai_api_key: str, options: NaturalFrontendOptions = NaturalFrontendOptions()
 ):
-    app.mount("/static", StaticFiles(check_dir=False, directory="natural_frontend/static", packages=[("natural_frontend", "static")]), name="static")
+    app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
 
     frontend_generator = FrontendGenerator(openai_api_key=openai_api_key)
+
+    templates = Jinja2Templates(directory=str(template_directory))
 
     @app.on_event("startup")
     async def on_startup():
