@@ -1,13 +1,25 @@
-# Natural Frontend
+<p align=center>
+<img height="90px" src="https://github.com/axelpey/natural-frontend/assets/1381992/a11640b3-77af-4780-b40a-e3695a265091" alt="Natural Frontend Logo" />
 
-Make your FastAPI generate a frontend to interact with it in one line
+<p align=center>
+<b>From backend to frontend with one line</b> <br /> Don't waste hours generating a frontend for your users.
+
+## Features
+
+
+
+## Development
+
+We're happy to get contributors working with us! Follow the instructions below to quickly setup yo
 
 ### Running the Application
+0. *(Optional)* Use virtualenv to quickly setup your environment:
+   `virtualenv venv && source venv/bin/activate`
 
-1. First, install the required packages:
+1. Install the required packages:
    `pip install -r requirements.txt`
 
-2. Run the application:
+2. Run the example application:
    `uvicorn app.main:app --reload`
 
 ### (With Docker)
@@ -18,7 +30,7 @@ Make your FastAPI generate a frontend to interact with it in one line
 
 ### Notes
 
-- This application is very basic and uses an in-memory list to store book data. For a real application, you'd want to use a database.
+- The template application is very basic and uses an in-memory list to store book data. For a real application, you'd want to use a database.
 - The `Book` model in `models.py` uses Pydantic for data validation.
 - The `main.py` file defines three API routes: to list all books (`GET /books`), add a new book (`POST /books`), and get a specific book by ID (`GET /books/{book_id}`).
 
