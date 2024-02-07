@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi import Depends, FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request
 from typing import Dict, List, Optional
 
 import importlib.resources as pkg_resources
@@ -43,14 +43,15 @@ class NaturalFrontendOptions:
         # Check that colors is a dict with keys "primary" and "secondary"
         if not isinstance(colors, dict):
             raise TypeError("colors must be a dict")
-        if not "primary" in colors:
+        if "primary" not in colors:
             raise ValueError("colors must have a 'primary' key")
-        if not "secondary" in colors:
+        if "secondary" not in colors:
             raise ValueError("colors must have a 'secondary' key")
 
         self.colors = colors
 
-        # Check that personas is a list of dicts with keys "persona" and "description", and there's also max 5 of them
+        # Check that personas is a list of dicts with keys "persona" and "description",
+        # and there's also max 5 of them
         if personas is not None:
             if not isinstance(personas, list):
                 raise TypeError("personas must be a list")
@@ -59,9 +60,9 @@ class NaturalFrontendOptions:
             for persona in personas:
                 if not isinstance(persona, dict):
                     raise TypeError("personas must be a list of dicts")
-                if not "persona" in persona:
+                if "persona" not in persona:
                     raise ValueError("personas must have a 'persona' key")
-                if not "description" in persona:
+                if "description" not in persona:
                     raise ValueError("personas must have a 'description' key")
 
         self.personas = personas
@@ -142,7 +143,8 @@ def NaturalFrontend(
             API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0
         )
 
-        # Now parse it. If it does not work, query gpt-3.5 again to clean it in the right format.
+        # Now parse it. If it does not work, query gpt-3.5 again to clean it in
+        # the right format.
         # Do a recursive function that calls gpt-3.5 if the parsing fails.
         def parse_potential_personas(personas: str, retries=5):
             try:
@@ -152,22 +154,22 @@ def NaturalFrontend(
                 parsed_json = json.loads(personas)
 
                 # Check the keys are correct
-                if not "results" in parsed_json:
+                if "results" not in parsed_json:
                     raise Exception("The key 'results' is missing")
                 if not isinstance(parsed_json["results"], list):
                     raise Exception("The key 'results' is not a list")
                 for result in parsed_json["results"]:
-                    if not "persona" in result:
+                    if "persona" not in result:
                         raise Exception("The key 'persona' is missing")
                     if not isinstance(result["persona"], str):
                         raise Exception("The key 'persona' is not a string")
-                    if not "description" in result:
+                    if "description" not in result:
                         raise Exception("The key 'description' is missing")
                     if not isinstance(result["description"], str):
                         raise Exception("The key 'description' is not a string")
 
                 return parsed_json
-            except:
+            except Exception:
                 print("Parsing failed. Trying again...")
                 response = frontend_generator.client.chat.completions.create(
                     model="gpt-3.5-turbo-1106",
@@ -175,7 +177,9 @@ def NaturalFrontend(
                         {
                             "role": "user",
                             "content": "The following JSON object could not be parsed. "
-                            + "Please reformat it to give me the answer as a json object like {results: {persona: str; description: str;}[] }"
+                            + "Please reformat it to give me the answer as a json "
+                            + "object like "
+                            + "{results: {persona: str; description: str;}[] }"
                             + f"\n\n{personas}\n\n",
                         },
                     ],

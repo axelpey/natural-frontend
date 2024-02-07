@@ -9,7 +9,7 @@ class Cache:
         if not os.path.exists(directory):
             try:
                 os.makedirs(directory)
-            except:
+            except Exception:
                 pass
         self.expiry_time = cache_expiry_time  # 600 seconds cache expiration time
 
@@ -31,5 +31,5 @@ class Cache:
         try:
             with open(file_path, "w") as file:
                 json.dump({"data": value, "time": time.time()}, file)
-        except:
+        except Exception:
             pass

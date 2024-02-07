@@ -10,7 +10,8 @@ class FrontendGenerator:
         self.prompt.append(
             {
                 "role": "system",
-                "content": f"You will be given a {framework_name} codebase for an API and a user type with a specific use case.",
+                "content": f"You will be given a {framework_name} codebase for an API "
+                + "and a user type with a specific use case.",
             }
         )
 
