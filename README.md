@@ -29,8 +29,7 @@
 
 Just add one-line to your api project:
 
-python
-```
+```python
 from fastapi import FastAPI
 from natural_frontend import NaturalFrontend
 
