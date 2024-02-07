@@ -2,6 +2,7 @@ from collections.abc import Callable
 import inspect
 from typing import Any
 
+
 def create_api_short_documentation_prompt(routes_code: str):
     return [
         {

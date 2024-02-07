@@ -25,9 +25,10 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-template_directory = pkg_resources.files('natural_frontend').joinpath('templates')
-static_directory = pkg_resources.files('natural_frontend').joinpath('static')
-cache_directory = pkg_resources.files('natural_frontend').joinpath('cache')
+template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
+static_directory = pkg_resources.files("natural_frontend").joinpath("static")
+cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
+
 
 # Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
 # And personas needs to be a list of dicts with keys "persona" and "description"
@@ -74,12 +75,14 @@ class NaturalFrontendOptions:
         # Check that frontend_endpoint is a string
         if not isinstance(frontend_endpoint, str):
             raise TypeError("frontend_endpoint must be a string")
-        
+
         self.frontend_endpoint = frontend_endpoint
 
 
 def NaturalFrontend(
-    app: FastAPI, openai_api_key: str, options: NaturalFrontendOptions = NaturalFrontendOptions()
+    app: FastAPI,
+    openai_api_key: str,
+    options: NaturalFrontendOptions = NaturalFrontendOptions(),
 ):
     app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
 
@@ -88,7 +91,9 @@ def NaturalFrontend(
     frontend_generator = FrontendGenerator(openai_api_key=openai_api_key)
 
     templates = Jinja2Templates(directory=str(template_directory))
-    cache = Cache(directory=str(cache_directory), cache_expiry_time=options.cache_expiry_time)
+    cache = Cache(
+        directory=str(cache_directory), cache_expiry_time=options.cache_expiry_time
+    )
 
     @app.on_event("startup")
     async def on_startup():
@@ -114,26 +119,28 @@ def NaturalFrontend(
     @app.get(f"/{frontend_endpoint}/", response_class=HTMLResponse)
     async def frontend(request: Request):
         cache_key = "frontend_personas"
-    
+
         # Try to get cached response
         potential_personas = cache.get(cache_key)
         if potential_personas:
             return templates.TemplateResponse(
-            "queryForm.html",
-            {
-                "request": request,
-                "potential_personas": potential_personas,
-                "colors": [
-                    "green",
-                    "pink",
-                    "lightblue",
-                ],  # Replace with your actual colors
-            },
-        )
-        
+                "queryForm.html",
+                {
+                    "request": request,
+                    "potential_personas": potential_personas,
+                    "colors": [
+                        "green",
+                        "pink",
+                        "lightblue",
+                    ],  # Replace with your actual colors
+                },
+            )
+
         logging.info("NO CACHE HIT")
-        
-        potential_personas_str = frontend_generator.generate_potential_personas(API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0)
+
+        potential_personas_str = frontend_generator.generate_potential_personas(
+            API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0
+        )
 
         # Now parse it. If it does not work, query gpt-3.5 again to clean it in the right format.
         # Do a recursive function that calls gpt-3.5 if the parsing fails.
