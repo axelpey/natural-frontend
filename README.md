@@ -12,7 +12,49 @@
 
 ## Features
 
-TODO
+- Natural Frontend reads your backend codebase & understands what it serves, and the potential user personas for your product.
+- On the `/frontend` endpoint, you can select the probable user personas that NF determined then generate a frontend for them.
+
+*Coming soon*:
+- Save your generated frontends to modify them later.
+- Use local models instead of openai.
+
+## Usage
+
+### Installation
+
+`pip install natural-frontend`
+
+### Add to your code
+
+Just add one-line to your api project:
+
+python
+```
+from fastapi import FastAPI
+from natural_frontend import NaturalFrontend
+
+openai_key = "sk-..."
+
+app = FastAPI()
+app = NaturalFrontend(app, openai_key)
+
+@app.get("/books")
+async def get_books():
+    return books_db
+
+
+@app.post("/books")
+async def add_book(book: Book):
+    books_db.append(book.dict())
+    return {"message": "Book added successfully"}
+
+class Book(BaseModel):
+    id: int
+    title: str
+    author: str
+    genre: str
+```
 
 ## Development
 
