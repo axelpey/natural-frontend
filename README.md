@@ -76,10 +76,6 @@ Documentation of options:
 - `cache_expiry_time`: Set the time in seconds before the generation cache expires.
 - `frontend_endpoint`: Change the endpoint of the frontend.
 
-### 🚀 Run your server
-
-Run your server and go to `http://
-
 ## Development
 
 We're happy to get contributors working with us! Follow the instructions below to quickly setup yo
