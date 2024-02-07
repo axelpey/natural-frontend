@@ -1,4 +1,4 @@
-name: Build distro
+name: Build and release distro
 
 on:
   push:
