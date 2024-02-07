@@ -21,11 +21,11 @@
 
 ## Usage
 
-### Installation
+### ⬇️ Installation
 
-`pip install natural-frontend`
+With pip: `pip install natural-frontend`
 
-### Add to your code
+### ➕ Add to your code
 
 Just add one-line to your api project:
 
@@ -54,6 +54,31 @@ class Book(BaseModel):
     author: str
     genre: str
 ```
+
+### ⚙️ Options
+
+You can provide options to customize your Natural Frontend:
+
+```python
+nf_options = NaturalFrontendOptions(
+   colors={"primary": "lightblue", "secondary": "purple"},
+   personas=[{"Bookworm": "Loves to look for new books"}],
+   cache_expiry_time=600,
+   frontend_endpoint="frontend",
+)
+
+app = NaturalFrontend(app, openai_key, nf_options)
+```
+
+Documentation of options:
+- `colors`: Customize the colors of the frontend. Use two keys: "primary" and "secondary".
+- `personas`: Add custom personas for your frontend. NF will guess more until there's 5 personas.
+- `cache_expiry_time`: Set the time in seconds before the generation cache expires.
+- `frontend_endpoint`: Change the endpoint of the frontend.
+
+### 🚀 Run your server
+
+Run your server and go to `http://
 
 ## Development
 
