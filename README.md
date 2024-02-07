@@ -5,7 +5,7 @@
 <b>From backend to frontend with one line</b> <br /> Don't waste hours generating a frontend for your users.
 
 <p align=center>
-<img height="240px" src="https://github.com/axelpey/natural-frontend/assets/1381992/87ccd4f5-f3a1-404e-940e-a92a7a1f47cc" alt="NF Usage" />
+<img height="200px" src="https://github.com/axelpey/natural-frontend/assets/1381992/ab776a2b-2f64-4022-bfd2-7cdd3d9084ad" alt="NF Usage" />
 
 <p align=center>
 <img width="600px" alt="NF Screenshot" src="https://github.com/axelpey/natural-frontend/assets/1381992/355d8553-50c1-48ac-be90-18b058eebc93">
