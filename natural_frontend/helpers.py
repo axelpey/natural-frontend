@@ -2,11 +2,13 @@ from collections.abc import Callable
 import inspect
 from typing import Any
 
+
 def create_api_short_documentation_prompt(routes_code: str):
     return [
         {
             "role": "system",
-            "content": f"Write a short documentation for each route. What it does, what it takes as input, what it returns.",
+            "content": "Write a short documentation for each route. What it does, "
+            + "what it takes as input, what it returns.",
         },
         {
             "role": "user",
