@@ -12,8 +12,8 @@
 
 ## Features
 
-- Natural Frontend reads your backend codebase & understands what it serves, and the potential user personas for your product.
-- On the `/frontend` endpoint, you can select the probable user personas that NF determined then generate a frontend for them.
+- Natural Frontend understands your codebase and the potential user personas for your product.
+- On the `/frontend` endpoint, select a user personas and NF generates a tailored frontend.
 
 *Coming soon*:
 - Save your generated frontends to modify them later.
