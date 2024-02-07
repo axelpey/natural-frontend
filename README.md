@@ -13,7 +13,7 @@
 ## Features
 
 - Natural Frontend understands your codebase and the potential user personas for your product.
-- On the `/frontend` endpoint, select a user personas and NF will generate a tailored frontend.
+- On the `/frontend` endpoint, select a user persona and NF will generate a tailored frontend.
 
 *Coming soon*:
 - Save your generated frontends to modify them later.
@@ -71,14 +71,14 @@ app = NaturalFrontend(app, openai_key, nf_options)
 ```
 
 Documentation of options:
-- `colors`: Customize the colors of the frontend. Use two keys: "primary" and "secondary".
+- `colors`: Customize the color themes of the frontend. Use two keys: "primary" and "secondary".
 - `personas`: Add custom personas for your frontend. NF will guess more until there's a total of 5 personas.
 - `cache_expiry_time`: Set the time in seconds before the generation cache expires.
 - `frontend_endpoint`: Change the endpoint of the frontend.
 
 ## Development
 
-We're happy to get contributors working with us! Follow the instructions below to quickly setup yo
+We're happy to get contributors working with us! Follow the instructions below to quickly setup your local environment.
 
 ### Running the Application
 0. *(Optional)* Use virtualenv to quickly setup your environment:
