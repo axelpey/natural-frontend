@@ -3,8 +3,8 @@ from fastapi import FastAPI, HTTPException, Query
 import json
 
 from natural_frontend.natural_frontend import NaturalFrontend
-from app.models import Book
-from app.db import books_db
+from examples.library.models import Book
+from examples.library.db import books_db
 
 app = FastAPI()
 
