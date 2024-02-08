@@ -45,7 +45,7 @@ class FrontendGenerator:
 
         return potential_personas_response.choices[0].message.content
 
-    def generate_frontend_code(self, use_case, colors=None):
+    def generate_frontend_code(self, use_case, api_url, colors=None):
         response = self.client.chat.completions.create(
             model="gpt-4-1106-preview",
             messages=[
@@ -57,7 +57,7 @@ class FrontendGenerator:
                 {
                     "role": "user",
                     "content": f"Generate the working HTML code (with JS included) for a single-page interface to the given API. "
-                    + "The base url is localhost:80."
+                    + f"The base url is {api_url}."
                     + "Only point to the subset of actions useful to this user type. "
                     + "Style the interface like you have some real design skills, this is 2024! "
                     + (f"Also use this color scheme: {colors}. " if colors else "")
