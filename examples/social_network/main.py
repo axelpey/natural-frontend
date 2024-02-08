@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime
 import json
 
-from natural_frontend.natural_frontend import NaturalFrontend
+from natural_frontend.natural_frontend import NaturalFrontend, NaturalFrontendOptions
 
 app = FastAPI()
 
@@ -12,7 +12,11 @@ app = FastAPI()
 with open("creds.json") as f:
     creds = json.load(f)
 
-app = NaturalFrontend(app, openai_api_key=creds["key"])
+app = NaturalFrontend(
+    app,
+    openai_api_key=creds["key"],
+    options=NaturalFrontendOptions(frontend_endpoint=""),
+)
 
 
 class User(BaseModel):

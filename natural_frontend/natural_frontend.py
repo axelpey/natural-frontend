@@ -115,9 +115,9 @@ def NaturalFrontend(
         frontend_generator.seed_prompt("FastAPI")
         frontend_generator.add_api_source(aggregated_api_source)
 
-        print("Natural Frontend was initiated successfully")
+        logging.info("Natural Frontend was initiated successfully")
 
-    @app.get(f"/{frontend_endpoint}/", response_class=HTMLResponse)
+    @app.get(f"/{frontend_endpoint}", response_class=HTMLResponse)
     async def frontend(request: Request):
         cache_key = "frontend_personas"
 
@@ -206,10 +206,11 @@ def NaturalFrontend(
                     "pink",
                     "lightblue",
                 ],  # Replace with your actual colors
+                "frontend_endpoint": f"gen_{frontend_endpoint}"
             },
         )
 
-    @app.post(f"/gen_{frontend_endpoint}/", response_class=HTMLResponse)
+    @app.post(f"/gen_{frontend_endpoint}", response_class=HTMLResponse)
     async def handle_form(request: Request, persona: str = Form(...)):
         scheme = request.url.scheme
         server_host = request.headers.get('host')
