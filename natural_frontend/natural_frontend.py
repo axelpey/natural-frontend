@@ -217,7 +217,7 @@ def NaturalFrontend(
 
         logging.info(f"Generating frontend for url: {full_url}")
 
-        cache_key = f"html_frontend_{persona.split()[0]}"
+        cache_key = f"html_frontend_{persona.split()[0]}_{full_url}"
         response_content = cache.get(cache_key)
         if response_content:
             return HTMLResponse(content=response_content)
