@@ -35,13 +35,17 @@ class Post(BaseModel):
 
 # Initial data
 users = [
-    User(id=1, email="user1@example.com", name="User One"),
-    User(id=2, email="user2@example.com", name="User Two"),
+    User(id=1, email="axel@mail.com", name="Axel Peytavin"),
+    User(id=2, email="pierrot@great-ai-startup.com", name="Pierre"),
+    User(id=3, email="michelle@aol.com", name="Michelle"),
 ]
 posts = [
-    Post(id=1, title="Post 1", content="Content of post 1", owner_id=1),
-    Post(id=2, title="Post 2", content="Content of post 2", owner_id=1),
-    Post(id=3, title="Post 3", content="Content of post 3", owner_id=2),
+    Post(id=1, title="I love my dog", content="I love my dog a lot", owner_id=1),
+    Post(id=2, title="I love my cat", content="He's so cute", owner_id=1),
+    Post(
+        id=3, title="Who left the door open?", content="I'm freezing here", owner_id=2
+    ),
+    Post(id=4, title="I'm so happy", content="I just got a new job", owner_id=3),
 ]
 
 
