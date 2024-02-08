@@ -226,7 +226,7 @@ def NaturalFrontend(
         # With the query in hand, send it to the NLP model
         # Handle the processed query
         response_content = frontend_generator.generate_frontend_code(
-            persona, full_url, options.colors, 
+            persona, full_url, options.colors
         )
 
         cache.set(cache_key, response_content)
