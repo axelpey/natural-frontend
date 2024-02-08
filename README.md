@@ -87,8 +87,8 @@ We're happy to get contributors working with us! Follow the instructions below t
 1. Install the required packages:
    `pip install -r requirements.txt`
 
-2. Run the example application:
-   `uvicorn app.main:app --reload`
+2. Run one of the example applications:
+   `uvicorn example.APP.main:app --reload` where APP is one in the `examples` directory.
 
 ### (With Docker)
 
