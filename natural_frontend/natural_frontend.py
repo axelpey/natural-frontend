@@ -210,7 +210,13 @@ def NaturalFrontend(
         )
 
     @app.post(f"/gen_{frontend_endpoint}/", response_class=HTMLResponse)
-    async def handle_form(persona: str = Form(...)):
+    async def handle_form(request: Request, persona: str = Form(...)):
+        scheme = request.url.scheme
+        server_host = request.headers.get('host')
+        full_url = f"{scheme}://{server_host}"
+
+        logging.info(f"Generating frontend for url: {full_url}")
+
         cache_key = f"html_frontend_{persona.split()[0]}"
         response_content = cache.get(cache_key)
         if response_content:
