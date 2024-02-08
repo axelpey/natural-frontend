@@ -95,9 +95,9 @@
         max-width: 800px;
         margin: 0 auto;
       }
-      .persona-buttons button {
+      .persona-buttons-container button {
         margin: 5px;
-        padding: 10px;
+        padding: 10px 20px;
         border-radius: 5px;
         border: none;
         background-color: #f0f0f0; /* A neutral color for non-selected buttons */
@@ -105,13 +105,13 @@
         transition: background-color 0.3s;
         background-image: none;
       }
-      .persona-buttons button.active {
+      .persona-buttons-container button.active {
         background-color: #a1eafb; /* A highlighted color for the active/selected button */
       }
-      .persona-buttons {
+      .persona-buttons-container {
         margin-bottom: 20px;
       }
-      .persona-buttons h2 {
+      .persona-buttons-container h2 {
         margin-bottom: 5px;
       }
       .generate-btn {
@@ -165,7 +165,31 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
+      }
+
+      .persona-buttons-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
         margin-bottom: 20px;
+      }
+
+      .form-container {
+        width: 600px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .form-container h2 {
+        margin-bottom: 20px;
+      }
+
+      .persona-buttons-container button.active {
+        background-color: #a1eafb; /* Highlight color for the active/selected button */
+        color: #333; /* Text color for the active/selected button */
       }
 
       @keyframes spin {
@@ -188,7 +212,7 @@
     </style>
   </head>
   <body>
-    <form action="/gen_frontend" method="post">
+    <form action="/gen_{{ frontend_endpoint }}" method="post" class="form-container">
       <div class="logo-container">
         <img
           src="/static/natural_frontend_logo.png"
@@ -197,33 +221,22 @@
         />
         <h1>Natural Frontend</h1>
       </div>
-      <p>Pick your persona for your API experience, we'll handle the rest!</p>
       <div>
-        <label for="persona">Who are you? </label>
+        <h2>Who are you?</h2>
+        <div class="persona-buttons-container">
+          {% for persona in potential_personas %}
+          <button type="button" onclick="selectPersona('{{persona.persona}}', '{{ persona.description }}', event)">
+            {{ persona.persona }}
+          </button>
+          {% endfor %}
+          <button type="button" onclick="selectPersona('Other', '', event)">Other</button>
+        </div>
         <div class="input-icon">
           <i class="fa fa-user icon"></i>
-          <input
-            type="text"
-            id="persona"
-            name="persona"
-            class="input-with-icon"
-            placeholder="{{ potential_personas[0].persona }}: {{ potential_personas[0].description }}"
-            required
-          />
+          <input type="text" id="persona" name="persona" class="input-with-icon" placeholder="Select your persona" required />
         </div>
       </div>
 
-      <div class="persona-buttons">
-        <h2>Potential Personas for this API</h2>
-        {% for persona in potential_personas %}
-        <button
-          type="button"
-          onclick="selectPersona('{{persona.persona}}', '{{ persona.description }}')"
-        >
-          {{ persona.persona }}
-        </button>
-        {% endfor %}
-      </div>
       <div>
         <div id="buttonOrSpinner">
           <button type="submit" class="generate-btn" onclick="showSpinner()">
@@ -235,10 +248,36 @@
     </form>
     <script>
       function selectPersona(persona, description) {
-        document.getElementById("persona").value = persona + ": " + description;
+        const personaInput = document.getElementById('persona');
+        const buttons = document.querySelectorAll('.persona-buttons-container button');
+      
+        // Remove 'active' class from all buttons
+        buttons.forEach(button => {
+          button.classList.remove('active');
+        });
+      
+        // Add 'active' class to the clicked button
+        // This requires passing an additional parameter to the function to identify the clicked button
+        if(persona !== 'Other') {
+          event.currentTarget.classList.add('active');
+          personaInput.setAttribute('readonly', 'readonly'); // Make it readonly
+          personaInput.value = persona + ": " + description; // Set the selected persona
+        } else {
+          // If "Other" is clicked, make sure to handle it accordingly
+          personaInput.removeAttribute('readonly'); // Allow text entry
+          personaInput.value = ''; // Clear the input field
+          personaInput.placeholder = 'Enter your persona'; // Update placeholder
+          personaInput.focus(); // Focus on the input field
+          event.currentTarget.classList.add('active');
+        }
       }
+      
 
       function showSpinner() {
+        // Only if there is value in the input field
+        if (document.getElementById("persona").value === "") {
+          return;
+        }
         document.querySelector(".generate-btn").style.display = "none"; // Hide button
         document.getElementById("spinner").style.display = "block"; // Show spinner
 
