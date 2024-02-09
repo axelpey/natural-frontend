@@ -7,8 +7,8 @@
 <p align=center>
 <img height="200px" src="https://github.com/axelpey/natural-frontend/assets/1381992/ab776a2b-2f64-4022-bfd2-7cdd3d9084ad" alt="NF Usage" />
 
-<p align=center>
-<img width="600px" alt="NF Screenshot" src="https://github.com/axelpey/natural-frontend/assets/1381992/355d8553-50c1-48ac-be90-18b058eebc93">
+https://github.com/axelpey/natural-frontend/assets/1381992/dbef93fa-6313-4122-902b-9109961abeec
+
 
 ## Features
 
