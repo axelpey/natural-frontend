@@ -206,14 +206,14 @@ def NaturalFrontend(
                     "pink",
                     "lightblue",
                 ],  # Replace with your actual colors
-                "frontend_endpoint": f"gen_{frontend_endpoint}"
+                "frontend_endpoint": f"{frontend_endpoint}",
             },
         )
 
     @app.post(f"/gen_{frontend_endpoint}", response_class=HTMLResponse)
     async def handle_form(request: Request, persona: str = Form(...)):
         scheme = request.url.scheme
-        server_host = request.headers.get('host')
+        server_host = request.headers.get("host")
         full_url = f"{scheme}://{server_host}"
 
         logging.info(f"Generating frontend for url: {full_url}")
