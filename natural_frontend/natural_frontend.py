@@ -206,7 +206,7 @@ def NaturalFrontend(
                     "pink",
                     "lightblue",
                 ],  # Replace with your actual colors
-                "frontend_endpoint": f"gen_{frontend_endpoint}",
+                "frontend_endpoint": f"{frontend_endpoint}",
             },
         )
 
