@@ -15,7 +15,19 @@ with open("creds.json") as f:
 app = NaturalFrontend(
     app,
     openai_api_key=creds["key"],
-    options=NaturalFrontendOptions(frontend_endpoint=""),
+    options=NaturalFrontendOptions(
+        frontend_endpoint="frontend",
+        personas=[
+            {
+                "persona": "Twitter Lover Reader",
+                "description": "User that loves reading posts on a Twitter-like platform",
+            },
+            {
+                "persona": "Administrator",
+                "description": "User that can see and change all posts and users",
+            },
+        ],
+    ),
 )
 
 
