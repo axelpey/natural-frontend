@@ -1,27 +1,29 @@
-[project]
+[tool.poetry]
 name = "natural-frontend"
 version = "0.1.1"
-authors = [
-  { name="Axel Peytavin", email="peytavin@stanford.edu" },
-  { name="Pierre Collignon", email="collignonpie@gmail.com" },
-]
 description = "A wrapper for FastAPI to automatically generate a frontend"
-readme = "README.md"
-requires-python = ">=3.8"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+authors = [
+  "Axel Peytavin <peytavin@stanford.edu>",
+  "Pierre Collignon <collignonpie@gmail.com>"
 ]
-dependencies = [
-  'Jinja2 >= 3.1.3',
-  'openai >= 1.8.0',
-  'python-multipart >= 0.0.6'
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/axelpey/natural-frontend"
+repository = "https://github.com/axelpey/natural-frontend"
+documentation = "http://google.com"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
 ]
 
-[project.urls]
-Homepage = "https://github.com/axelpey/natural-frontend"
-Issues = "https://github.com/axelpey/natural-frontend/issues"
+[tool.poetry.dependencies]
+python = ">=3.8"
+fastapi = "^0.109.0"
+Jinja2 = "^3.1.3"
+openai = "^1.8.0"
+python-multipart = "^0.0.6"
+flask = "^3.0.2"
 
 [build-system]
 requires = ["hatchling"]
