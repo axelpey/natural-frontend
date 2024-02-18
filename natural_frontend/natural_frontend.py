@@ -2,19 +2,20 @@ import logging
 import json
 
 from fastapi.responses import HTMLResponse
-from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, Form, Request
-from typing import Dict, List, Optional
+from fastapi import Form, Request
+from typing import Any, Dict, List, Optional
 
 import importlib.resources as pkg_resources
 
 from .cache import Cache
+from .constants import FAST_API
 from .frontend_generator import FrontendGenerator
 from .helpers import (
     aggregate_all_api_routes,
     create_api_short_documentation_prompt,
+    get_framework_name_or_crash
 )
 
 RESULT_VARIABLE_NAME = "axel"
@@ -81,11 +82,13 @@ class NaturalFrontendOptions:
 
 
 def NaturalFrontend(
-    app: FastAPI,
+    app: Any,
     openai_api_key: str,
     options: NaturalFrontendOptions = NaturalFrontendOptions(),
 ):
-    app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
+    framework_name = get_framework_name_or_crash(app)
+    if framework_name == FAST_API:
+        app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
 
     frontend_endpoint = options.frontend_endpoint
 
@@ -102,11 +105,7 @@ def NaturalFrontend(
         pass
 
         # Step 1: Load the codebase and add it to the seed prompt
-        aggregated_api_source = aggregate_all_api_routes(
-            app.routes,
-            lambda r: not isinstance(r, APIRoute)
-            or r.endpoint.__name__ in ["handle_form", "frontend"],
-        )
+        aggregated_api_source = aggregate_all_api_routes(app, framework_name)
 
         API_DOC_GEN_PROMPT.extend(
             create_api_short_documentation_prompt(aggregated_api_source)
@@ -117,7 +116,6 @@ def NaturalFrontend(
 
         logging.info("Natural Frontend was initiated successfully")
 
-    @app.get(f"/{frontend_endpoint}", response_class=HTMLResponse)
     async def frontend(request: Request):
         cache_key = "frontend_personas"
 
@@ -190,6 +188,8 @@ def NaturalFrontend(
                     response.choices[0].message.content, retries - 1
                 )
 
+        potential_personas = [{"persona": "test", "description": "test"}]
+
         potential_personas = (
             options.personas if options.personas else []
         ) + parse_potential_personas(potential_personas_str)["results"]
@@ -210,7 +210,6 @@ def NaturalFrontend(
             },
         )
 
-    @app.post(f"/gen_{frontend_endpoint}", response_class=HTMLResponse)
     async def handle_form(request: Request, persona: str = Form(...)):
         scheme = request.url.scheme
         server_host = request.headers.get("host")
@@ -232,5 +231,9 @@ def NaturalFrontend(
         cache.set(cache_key, response_content)
 
         return HTMLResponse(content=response_content)
+
+    if framework_name == FAST_API:
+        app.add_api_route(f"/{frontend_endpoint}", frontend, methods=["GET"], response_class=HTMLResponse)
+        app.add_api_route(f"/gen_{frontend_endpoint}", handle_form, methods=["POST"], response_class=HTMLResponse)
 
     return app
