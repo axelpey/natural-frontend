@@ -1,3 +1,5 @@
+import json
+
 from openai import OpenAI
 
 
@@ -72,3 +74,48 @@ class FrontendGenerator:
             return generated_res.split("```html")[1].split("```")[0]
 
         return generated_res
+    
+    # Do a recursive function that calls gpt-3.5 if the parsing fails.
+    def parse_potential_personas(self, personas: str, retries=5):
+        try:
+            if retries == 0:
+                return {"results": []}
+
+            parsed_json = json.loads(personas)
+
+            # Check the keys are correct
+            if "results" not in parsed_json:
+                raise Exception("The key 'results' is missing")
+            if not isinstance(parsed_json["results"], list):
+                raise Exception("The key 'results' is not a list")
+            for result in parsed_json["results"]:
+                if "persona" not in result:
+                    raise Exception("The key 'persona' is missing")
+                if not isinstance(result["persona"], str):
+                    raise Exception("The key 'persona' is not a string")
+                if "description" not in result:
+                    raise Exception("The key 'description' is missing")
+                if not isinstance(result["description"], str):
+                    raise Exception("The key 'description' is not a string")
+
+            return parsed_json
+        except Exception:
+            print("Parsing failed. Trying again...")
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo-1106",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "The following JSON object could not be parsed. "
+                        + "Please reformat it to give me the answer as a json "
+                        + "object like "
+                        + "{results: {persona: str; description: str;}[] }"
+                        + f"\n\n{personas}\n\n",
+                    },
+                ],
+                response_format={"type": "json_object"},
+            )
+
+            return self.parse_potential_personas(
+                response.choices[0].message.content, retries - 1
+            )
