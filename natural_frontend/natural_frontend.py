@@ -88,7 +88,10 @@ def NaturalFrontend(
 ):
     framework_name = get_framework_name_or_crash(app)
     if framework_name == FAST_API:
-        app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
+        app.mount("/static_nf", StaticFiles(directory=str(static_directory)), name="static_nf")
+    elif framework_name == FLASK:
+        # FIXME: This is not working
+        pass
 
     frontend_endpoint = options.frontend_endpoint
 
