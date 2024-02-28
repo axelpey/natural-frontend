@@ -77,6 +77,10 @@ def NaturalFrontend(
     framework_name = get_framework_name_or_crash(app)
     logging.info(f"Framework detected: {framework_name}")
 
+    template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
+    static_directory = pkg_resources.files("natural_frontend").joinpath("static")
+    cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
+
     if framework_name == FAST_API:
         from starlette.responses import HTMLResponse
         from starlette.templating import Jinja2Templates
@@ -85,17 +89,38 @@ def NaturalFrontend(
 
         from fastapi import Form
 
-        template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
-        static_directory = pkg_resources.files("natural_frontend").joinpath("static")
-        cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
-
         app.mount(
             "/static_nf", StaticFiles(directory=str(static_directory)), name="static_nf"
         )
 
     elif framework_name == FLASK:
         from flask import request, make_response
-    
+        from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+        class Jinja2Templates:
+            def __init__(self, directory: str):
+                self.directory = directory
+                self.env = Environment(
+                    loader=FileSystemLoader(self.directory),
+                    autoescape=select_autoescape(['html', 'xml'])
+                )
+            
+            def TemplateResponse(self, template_name: str, context: dict):
+                """Renders a template and returns a Flask response.
+                
+                Args:
+                    template_name (str): The name of the template file.
+                    context (dict): A dictionary of context variables to pass to the template.
+                    
+                Returns:
+                    A Flask response object with the rendered template.
+                """
+                # Using Flask's render_template function directly can also work,
+                # but here we demonstrate using Jinja2's Environment for learning purposes.
+                template = self.env.get_template(template_name)
+                html_content = template.render(context)
+                return make_response(html_content)
+
     frontend_endpoint = options.frontend_endpoint
 
     frontend_generator = FrontendGenerator(openai_api_key=openai_api_key)
