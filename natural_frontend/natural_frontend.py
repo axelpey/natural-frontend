@@ -8,7 +8,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.requests import Request
 
 from fastapi import Form
-from flask import request
+from flask import request, make_response
 
 from .cache import Cache
 from .constants import FAST_API, FLASK
@@ -88,6 +88,9 @@ def NaturalFrontend(
     options: NaturalFrontendOptions = NaturalFrontendOptions(),
 ):
     framework_name = get_framework_name_or_crash(app)
+
+    logging.info(f"Framework detected: {framework_name}")
+
     if framework_name == FAST_API:
         app.mount(
             "/static_nf", StaticFiles(directory=str(static_directory)), name="static_nf"
@@ -192,7 +195,7 @@ def NaturalFrontend(
         cache_key = f"html_frontend_{persona.split()[0]}_{full_url}"
         response_content = cache.get(cache_key)
         if response_content:
-            return HTMLResponse(content=response_content)
+            return HTMLResponse(content=response_content) if framework_name == FAST_API else make_response(response_content)
 
         # With the query in hand, send it to the NLP model
         # Handle the processed query
@@ -202,7 +205,7 @@ def NaturalFrontend(
 
         cache.set(cache_key, response_content)
 
-        return HTMLResponse(content=response_content)
+        return HTMLResponse(content=response_content) if framework_name == FAST_API else make_response(response_content)
 
     if framework_name == FAST_API:
 
