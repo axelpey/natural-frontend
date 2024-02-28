@@ -19,11 +19,6 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
-static_directory = pkg_resources.files("natural_frontend").joinpath("static")
-cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
-
-
 # Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
 # And personas needs to be a list of dicts with keys "persona" and "description"
 class NaturalFrontendOptions:
@@ -80,6 +75,7 @@ def NaturalFrontend(
     options: NaturalFrontendOptions = NaturalFrontendOptions(),
 ):
     framework_name = get_framework_name_or_crash(app)
+    logging.info(f"Framework detected: {framework_name}")
 
     if framework_name == FAST_API:
         from starlette.responses import HTMLResponse
@@ -89,19 +85,17 @@ def NaturalFrontend(
 
         from fastapi import Form
 
-    elif framework_name == FLASK:
-        from flask import request, make_response
+        template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
+        static_directory = pkg_resources.files("natural_frontend").joinpath("static")
+        cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
 
-    logging.info(f"Framework detected: {framework_name}")
-
-    if framework_name == FAST_API:
         app.mount(
             "/static_nf", StaticFiles(directory=str(static_directory)), name="static_nf"
         )
-    elif framework_name == FLASK:
-        # FIXME: This is not working
-        pass
 
+    elif framework_name == FLASK:
+        from flask import request, make_response
+    
     frontend_endpoint = options.frontend_endpoint
 
     frontend_generator = FrontendGenerator(openai_api_key=openai_api_key)
