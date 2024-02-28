@@ -74,7 +74,7 @@ class FrontendGenerator:
             return generated_res.split("```html")[1].split("```")[0]
 
         return generated_res
-    
+
     # Do a recursive function that calls gpt-3.5 if the parsing fails.
     def parse_potential_personas(self, personas: str, retries=5):
         try:

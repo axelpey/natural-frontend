@@ -16,7 +16,7 @@ from .frontend_generator import FrontendGenerator
 from .helpers import (
     aggregate_all_api_routes,
     create_api_short_documentation_prompt,
-    get_framework_name_or_crash
+    get_framework_name_or_crash,
 )
 
 RESULT_VARIABLE_NAME = "axel"
@@ -81,6 +81,7 @@ class NaturalFrontendOptions:
 
         self.frontend_endpoint = frontend_endpoint
 
+
 def NaturalFrontend(
     app: Any,
     openai_api_key: str,
@@ -88,7 +89,9 @@ def NaturalFrontend(
 ):
     framework_name = get_framework_name_or_crash(app)
     if framework_name == FAST_API:
-        app.mount("/static_nf", StaticFiles(directory=str(static_directory)), name="static_nf")
+        app.mount(
+            "/static_nf", StaticFiles(directory=str(static_directory)), name="static_nf"
+        )
     elif framework_name == FLASK:
         # FIXME: This is not working
         pass
@@ -104,51 +107,56 @@ def NaturalFrontend(
 
     def initiate_natural_frontend(app: Any, framework_name: str):
         # Step 1: Load the codebase and add it to the seed prompt
-            aggregated_api_source = aggregate_all_api_routes(app, framework_name)
+        aggregated_api_source = aggregate_all_api_routes(app, framework_name)
 
-            API_DOC_GEN_PROMPT.extend(
-                create_api_short_documentation_prompt(aggregated_api_source)
-            )
+        API_DOC_GEN_PROMPT.extend(
+            create_api_short_documentation_prompt(aggregated_api_source)
+        )
 
-            frontend_generator.seed_prompt(framework_name)
-            frontend_generator.add_api_source(aggregated_api_source)
+        frontend_generator.seed_prompt(framework_name)
+        frontend_generator.add_api_source(aggregated_api_source)
 
-            logging.info("Natural Frontend was initiated successfully")
+        logging.info("Natural Frontend was initiated successfully")
 
     if framework_name == FAST_API:
+
         @app.on_event("startup")
         async def on_startup():
             initiate_natural_frontend(app, framework_name)
+
     elif framework_name == FLASK:
         with app.app_context():
             initiate_natural_frontend(app, framework_name)
 
-    def render_frontend_template(potential_personas: List[Dict[str, str]], frontend_endpoint: str, request: Request):
+    def render_frontend_template(
+        potential_personas: List[Dict[str, str]],
+        frontend_endpoint: str,
+        request: Request,
+    ):
         if framework_name == FAST_API:
             return templates.TemplateResponse(
-                    "queryForm.html",
-                    {
-                        "request": request,
-                        "potential_personas": potential_personas,
-                        "colors": [
-                            "green",
-                            "pink",
-                            "lightblue",
-                        ],  # Replace with your actual colors
-                        "frontend_endpoint": frontend_endpoint,
-                    },
-                )
+                "queryForm.html",
+                {
+                    "request": request,
+                    "potential_personas": potential_personas,
+                    "colors": [
+                        "green",
+                        "pink",
+                        "lightblue",
+                    ],  # Replace with your actual colors
+                    "frontend_endpoint": frontend_endpoint,
+                },
+            )
         elif framework_name == FLASK:
             return templates.get_template("queryForm.html").render(
                 potential_personas=potential_personas,
                 colors=[
-                            "green",
-                            "pink",
-                            "lightblue",
-                        ],
+                    "green",
+                    "pink",
+                    "lightblue",
+                ],
                 frontend_endpoint=frontend_endpoint,
-                )
-
+            )
 
     def frontend(request: Optional[Request] = None):
         cache_key = "frontend_personas"
@@ -156,7 +164,9 @@ def NaturalFrontend(
         # Try to get cached response
         potential_personas = cache.get(cache_key)
         if potential_personas:
-            return render_frontend_template(potential_personas, frontend_endpoint, request)
+            return render_frontend_template(
+                potential_personas, frontend_endpoint, request
+            )
 
         logging.info("NO CACHE HIT")
 
@@ -170,7 +180,9 @@ def NaturalFrontend(
 
         potential_personas = (
             options.personas if options.personas else []
-        ) + frontend_generator.parse_potential_personas(potential_personas_str)["results"]
+        ) + frontend_generator.parse_potential_personas(potential_personas_str)[
+            "results"
+        ]
 
         cache.set(cache_key, potential_personas)
 
@@ -193,13 +205,16 @@ def NaturalFrontend(
         return HTMLResponse(content=response_content)
 
     if framework_name == FAST_API:
+
         async def fast_api_frontend(request: Request):
             cache_key = "frontend_personas"
 
             # Try to get cached response
             potential_personas = cache.get(cache_key)
             if potential_personas:
-                return render_frontend_template(potential_personas, frontend_endpoint, request)
+                return render_frontend_template(
+                    potential_personas, frontend_endpoint, request
+                )
 
             logging.info("NO CACHE HIT")
 
@@ -213,11 +228,15 @@ def NaturalFrontend(
 
             potential_personas = (
                 options.personas if options.personas else []
-            ) + frontend_generator.parse_potential_personas(potential_personas_str)["results"]
+            ) + frontend_generator.parse_potential_personas(potential_personas_str)[
+                "results"
+            ]
 
             cache.set(cache_key, potential_personas)
 
-            return render_frontend_template(potential_personas, frontend_endpoint, request)
+            return render_frontend_template(
+                potential_personas, frontend_endpoint, request
+            )
 
         async def handle_form(request: Request, persona: Annotated[str, Form()]):
             scheme = request.url.scheme
@@ -228,11 +247,21 @@ def NaturalFrontend(
 
             return generate_frontend(persona, full_url)
 
-        app.add_api_route(f"/{frontend_endpoint}", fast_api_frontend, methods=["GET"], response_class=HTMLResponse)
-        app.add_api_route(f"/gen_{frontend_endpoint}", handle_form, methods=["POST"], response_class=HTMLResponse)
-
+        app.add_api_route(
+            f"/{frontend_endpoint}",
+            fast_api_frontend,
+            methods=["GET"],
+            response_class=HTMLResponse,
+        )
+        app.add_api_route(
+            f"/gen_{frontend_endpoint}",
+            handle_form,
+            methods=["POST"],
+            response_class=HTMLResponse,
+        )
 
     elif framework_name == FLASK:
+
         def handle_form():
             persona = request.form.get("persona")
 
@@ -241,6 +270,8 @@ def NaturalFrontend(
             return generate_frontend(persona, request.url)
 
         app.add_url_rule(f"/{frontend_endpoint}", "frontend", frontend, methods=["GET"])
-        app.add_url_rule(f"/gen_{frontend_endpoint}", "handle_form", handle_form, methods=["POST"])
+        app.add_url_rule(
+            f"/gen_{frontend_endpoint}", "handle_form", handle_form, methods=["POST"]
+        )
 
     return app
