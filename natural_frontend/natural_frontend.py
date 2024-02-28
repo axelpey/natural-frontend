@@ -2,14 +2,6 @@ import importlib.resources as pkg_resources
 import logging
 from typing import Annotated, Any, Dict, List, Optional
 
-from starlette.responses import HTMLResponse
-from starlette.templating import Jinja2Templates
-from starlette.staticfiles import StaticFiles
-from starlette.requests import Request
-
-from fastapi import Form
-from flask import request, make_response
-
 from .cache import Cache
 from .constants import FAST_API, FLASK
 from .frontend_generator import FrontendGenerator
@@ -88,6 +80,17 @@ def NaturalFrontend(
     options: NaturalFrontendOptions = NaturalFrontendOptions(),
 ):
     framework_name = get_framework_name_or_crash(app)
+
+    if framework_name == FAST_API:
+        from starlette.responses import HTMLResponse
+        from starlette.templating import Jinja2Templates
+        from starlette.staticfiles import StaticFiles
+        from starlette.requests import Request
+
+        from fastapi import Form
+
+    elif framework_name == FLASK:
+        from flask import request, make_response
 
     logging.info(f"Framework detected: {framework_name}")
 
