@@ -156,7 +156,7 @@ def NaturalFrontend(
     def render_frontend_template(
         potential_personas: List[Dict[str, str]],
         frontend_endpoint: str,
-        request: Request,
+        request,
     ):
         if framework_name == FAST_API:
             return templates.TemplateResponse(
@@ -183,7 +183,7 @@ def NaturalFrontend(
                 frontend_endpoint=frontend_endpoint,
             )
 
-    def frontend(request: Optional[Request] = None):
+    def frontend(request = None):
         cache_key = "frontend_personas"
 
         # Try to get cached response
