@@ -104,6 +104,9 @@ def NaturalFrontend(
                     loader=FileSystemLoader(self.directory),
                     autoescape=select_autoescape(['html', 'xml'])
                 )
+
+            def get_template(self, template_name: str):
+                return self.env.get_template(template_name)
             
             def TemplateResponse(self, template_name: str, context: dict):
                 """Renders a template and returns a Flask response.
