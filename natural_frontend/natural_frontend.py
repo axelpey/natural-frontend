@@ -105,7 +105,7 @@ def NaturalFrontend(
     def render_frontend_template(
         potential_personas: List[Dict[str, str]],
         frontend_endpoint: str,
-        request,
+        http_request: Any,
     ):
 
         nf_logo_data = pkgutil.get_data(__name__, "static/natural_frontend_logo.png")
@@ -115,7 +115,7 @@ def NaturalFrontend(
             return templates.TemplateResponse(
                 "queryForm.html",
                 {
-                    "request": request,
+                    "request": http_request,
                     "potential_personas": potential_personas,
                     "colors": [
                         "green",
@@ -168,9 +168,6 @@ def NaturalFrontend(
 
         return render_frontend_template(potential_personas, frontend_endpoint, request)
 
-    async def async_frontend(request: Request):
-        return frontend(request)
-
     def generate_frontend(persona: str, full_url: str):
         cache_key = f"html_frontend_{persona.split()[0]}_{full_url}"
         response_content = cache.get(cache_key)
@@ -196,6 +193,9 @@ def NaturalFrontend(
         )
 
     if framework_name == FAST_API:
+
+        async def async_frontend(request: Request):
+            return frontend(request)
 
         async def handle_form(request: Request, persona: Annotated[str, Form()]):
             scheme = request.url.scheme
