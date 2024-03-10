@@ -21,6 +21,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+
 def NaturalFrontend(
     app: Any,
     openai_api_key: str,
@@ -30,20 +31,14 @@ def NaturalFrontend(
     logging.info(f"Framework detected: {framework_name}")
 
     template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
-    static_directory = pkg_resources.files("natural_frontend").joinpath("static")
     cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
 
     if framework_name == FAST_API:
         from starlette.responses import HTMLResponse
         from starlette.templating import Jinja2Templates
-        from starlette.staticfiles import StaticFiles
         from starlette.requests import Request
 
         from fastapi import Form
-
-        app.mount(
-            "/static_nf", StaticFiles(directory=str(static_directory)), name="static_nf"
-        )
 
     elif framework_name == FLASK:
         from flask import request, make_response
@@ -51,22 +46,21 @@ def NaturalFrontend(
 
         class Jinja2Templates:
             def __init__(self, directory: str):
-                self.directory = directory
                 self.env = Environment(
-                    loader=FileSystemLoader(self.directory),
-                    autoescape=select_autoescape(['html', 'xml'])
+                    loader=FileSystemLoader(directory),
+                    autoescape=select_autoescape(["html", "xml"]),
                 )
 
             def get_template(self, template_name: str):
                 return self.env.get_template(template_name)
-            
+
             def TemplateResponse(self, template_name: str, context: dict):
                 """Renders a template and returns a Flask response.
-                
+
                 Args:
                     template_name (str): The name of the template file.
                     context (dict): A dictionary of context variables to pass to the template.
-                    
+
                 Returns:
                     A Flask response object with the rendered template.
                 """
@@ -113,6 +107,10 @@ def NaturalFrontend(
         frontend_endpoint: str,
         request,
     ):
+
+        nf_logo_data = pkgutil.get_data(__name__, "static/natural_frontend_logo.png")
+        natural_frontend_logo_b64 = b64encode(nf_logo_data).decode("utf-8")
+
         if framework_name == FAST_API:
             return templates.TemplateResponse(
                 "queryForm.html",
@@ -125,6 +123,7 @@ def NaturalFrontend(
                         "lightblue",
                     ],  # Replace with your actual colors
                     "frontend_endpoint": frontend_endpoint,
+                    "natural_frontend_logo_b64": natural_frontend_logo_b64,
                 },
             )
         elif framework_name == FLASK:
@@ -136,9 +135,10 @@ def NaturalFrontend(
                     "lightblue",
                 ],
                 frontend_endpoint=frontend_endpoint,
+                natural_frontend_logo_b64=natural_frontend_logo_b64,
             )
 
-    def frontend(request = None):
+    def frontend(request=None):
         cache_key = "frontend_personas"
 
         # Try to get cached response
@@ -175,7 +175,11 @@ def NaturalFrontend(
         cache_key = f"html_frontend_{persona.split()[0]}_{full_url}"
         response_content = cache.get(cache_key)
         if response_content:
-            return HTMLResponse(content=response_content) if framework_name == FAST_API else make_response(response_content)
+            return (
+                HTMLResponse(content=response_content)
+                if framework_name == FAST_API
+                else make_response(response_content)
+            )
 
         # With the query in hand, send it to the NLP model
         # Handle the processed query
@@ -185,9 +189,14 @@ def NaturalFrontend(
 
         cache.set(cache_key, response_content)
 
-        return HTMLResponse(content=response_content) if framework_name == FAST_API else make_response(response_content)
+        return (
+            HTMLResponse(content=response_content)
+            if framework_name == FAST_API
+            else make_response(response_content)
+        )
 
     if framework_name == FAST_API:
+
         async def handle_form(request: Request, persona: Annotated[str, Form()]):
             scheme = request.url.scheme
             server_host = request.headers.get("host")
@@ -219,16 +228,9 @@ def NaturalFrontend(
 
             return generate_frontend(persona, request.url)
 
+        app.add_url_rule(f"/{frontend_endpoint}", "frontend", frontend, methods=["GET"])
         app.add_url_rule(
-            f"/{frontend_endpoint}",
-            "frontend",
-            frontend,
-            methods=["GET"])
-        app.add_url_rule(
-            f"/gen_{frontend_endpoint}",
-            "handle_form",
-            handle_form,
-            methods=["POST"]
+            f"/gen_{frontend_endpoint}", "handle_form", handle_form, methods=["POST"]
         )
 
     return app
