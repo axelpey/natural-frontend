@@ -1,73 +1,25 @@
+from base64 import b64encode
 import importlib.resources as pkg_resources
 import logging
-from typing import Annotated, Any, Dict, List, Optional
+import pkgutil
+from typing import Annotated, Any, Dict, List
+
 
 from .cache import Cache
 from .constants import FAST_API, FLASK
 from .frontend_generator import FrontendGenerator
-from .helpers import (
+from .framework_helpers import (
     aggregate_all_api_routes,
     create_api_short_documentation_prompt,
     get_framework_name_or_crash,
 )
-
-RESULT_VARIABLE_NAME = "axel"
+from .natural_frontend_options import NaturalFrontendOptions
 
 API_DOC_GEN_PROMPT = []
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-# Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
-# And personas needs to be a list of dicts with keys "persona" and "description"
-class NaturalFrontendOptions:
-    def __init__(
-        self,
-        colors: Dict[str, str] = {"primary": "lightblue", "secondary": "purple"},
-        personas: Optional[List[Dict[str, str]]] = None,
-        cache_expiry_time: int = 600,
-        frontend_endpoint: str = "frontend",
-    ):
-        # Check that colors is a dict with keys "primary" and "secondary"
-        if not isinstance(colors, dict):
-            raise TypeError("colors must be a dict")
-        if "primary" not in colors:
-            raise ValueError("colors must have a 'primary' key")
-        if "secondary" not in colors:
-            raise ValueError("colors must have a 'secondary' key")
-
-        self.colors = colors
-
-        # Check that personas is a list of dicts with keys "persona" and "description",
-        # and there's also max 5 of them
-        if personas is not None:
-            if not isinstance(personas, list):
-                raise TypeError("personas must be a list")
-            if len(personas) > 5:
-                raise ValueError("personas must have a maximum of 5 elements")
-            for persona in personas:
-                if not isinstance(persona, dict):
-                    raise TypeError("personas must be a list of dicts")
-                if "persona" not in persona:
-                    raise ValueError("personas must have a 'persona' key")
-                if "description" not in persona:
-                    raise ValueError("personas must have a 'description' key")
-
-        self.personas = personas
-
-        # Check that cache_expiry_time is an int
-        if not isinstance(cache_expiry_time, int):
-            raise TypeError("cache_expiry_time must be an int")
-
-        self.cache_expiry_time = cache_expiry_time  # 600 seconds cache expiration time
-
-        # Check that frontend_endpoint is a string
-        if not isinstance(frontend_endpoint, str):
-            raise TypeError("frontend_endpoint must be a string")
-
-        self.frontend_endpoint = frontend_endpoint
-
 
 def NaturalFrontend(
     app: Any,
@@ -216,6 +168,9 @@ def NaturalFrontend(
 
         return render_frontend_template(potential_personas, frontend_endpoint, request)
 
+    async def async_frontend(request: Request):
+        return frontend(request)
+
     def generate_frontend(persona: str, full_url: str):
         cache_key = f"html_frontend_{persona.split()[0]}_{full_url}"
         response_content = cache.get(cache_key)
@@ -233,39 +188,6 @@ def NaturalFrontend(
         return HTMLResponse(content=response_content) if framework_name == FAST_API else make_response(response_content)
 
     if framework_name == FAST_API:
-
-        async def fast_api_frontend(request: Request):
-            cache_key = "frontend_personas"
-
-            # Try to get cached response
-            potential_personas = cache.get(cache_key)
-            if potential_personas:
-                return render_frontend_template(
-                    potential_personas, frontend_endpoint, request
-                )
-
-            logging.info("NO CACHE HIT")
-
-            potential_personas_str = frontend_generator.generate_potential_personas(
-                API_DOC_GEN_PROMPT, len(options.personas) if options.personas else 0
-            )
-
-            # Now parse it. If it does not work, query gpt-3.5 again to clean it in
-            # the right format.
-            potential_personas = [{"persona": "test", "description": "test"}]
-
-            potential_personas = (
-                options.personas if options.personas else []
-            ) + frontend_generator.parse_potential_personas(potential_personas_str)[
-                "results"
-            ]
-
-            cache.set(cache_key, potential_personas)
-
-            return render_frontend_template(
-                potential_personas, frontend_endpoint, request
-            )
-
         async def handle_form(request: Request, persona: Annotated[str, Form()]):
             scheme = request.url.scheme
             server_host = request.headers.get("host")
@@ -277,7 +199,7 @@ def NaturalFrontend(
 
         app.add_api_route(
             f"/{frontend_endpoint}",
-            fast_api_frontend,
+            async_frontend,
             methods=["GET"],
             response_class=HTMLResponse,
         )
@@ -297,9 +219,16 @@ def NaturalFrontend(
 
             return generate_frontend(persona, request.url)
 
-        app.add_url_rule(f"/{frontend_endpoint}", "frontend", frontend, methods=["GET"])
         app.add_url_rule(
-            f"/gen_{frontend_endpoint}", "handle_form", handle_form, methods=["POST"]
+            f"/{frontend_endpoint}",
+            "frontend",
+            frontend,
+            methods=["GET"])
+        app.add_url_rule(
+            f"/gen_{frontend_endpoint}",
+            "handle_form",
+            handle_form,
+            methods=["POST"]
         )
 
     return app

@@ -2,7 +2,7 @@ from collections.abc import Callable
 import inspect
 from typing import Any
 
-from .constants import FAST_API, FLASK, FAST_API_ROUTE_TYPE, BAD_ROUTES_BY_FRAMEWORK
+from .constants import FAST_API, FLASK, FAST_API_ROUTE_TYPE, NON_API_ROUTES_BY_FRAMEWORK
 
 
 class Route:
@@ -51,7 +51,7 @@ def convert_and_filter_route_by_framework(
             return None
         return Route(route.endpoint)
     elif framework_name == FLASK:
-        if route.endpoint in BAD_ROUTES_BY_FRAMEWORK[FLASK]:
+        if route.endpoint in NON_API_ROUTES_BY_FRAMEWORK[FLASK]:
             return None
         return Route(app.view_functions[route.endpoint])
     else:
