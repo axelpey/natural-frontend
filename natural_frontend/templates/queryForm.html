@@ -214,18 +214,16 @@
   <body>
     <form action="/gen_{{ frontend_endpoint }}" method="post" class="form-container">
       <div class="logo-container">
-        <img
-          src="/static/natural_frontend_logo.png"
+        <img src="data:image/gif;base64,{{ natural_frontend_logo_b64 }}"
           alt="Natural Frontend Logo"
-          class="logo"
-        />
+          class="logo"/>
         <h1>Natural Frontend</h1>
       </div>
       <div>
         <h2>Who are you?</h2>
         <div class="persona-buttons-container">
           {% for persona in potential_personas %}
-          <button type="button" onclick="selectPersona('{{persona.persona}}', '{{ persona.description }}', event)">
+          <button type="button" onclick="selectPersona('{{ persona.persona }}', '{{ persona.description }}', event)">
             {{ persona.persona }}
           </button>
           {% endfor %}

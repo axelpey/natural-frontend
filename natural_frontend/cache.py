@@ -11,7 +11,7 @@ class Cache:
                 os.makedirs(directory)
             except Exception:
                 pass
-        self.expiry_time = cache_expiry_time  # 600 seconds cache expiration time
+        self.expiry_time = cache_expiry_time
 
     def get_file_path(self, key):
         filename = f"{key}.json"

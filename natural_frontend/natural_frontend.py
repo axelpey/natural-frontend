@@ -1,84 +1,25 @@
-import logging
-import json
-
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi import Form, Request
-from typing import Any, Dict, List, Optional
-
+from base64 import b64encode
 import importlib.resources as pkg_resources
+import logging
+import pkgutil
+from typing import Annotated, Any, Dict, List
+
 
 from .cache import Cache
-from .constants import FAST_API
+from .constants import FAST_API, FLASK
 from .frontend_generator import FrontendGenerator
-from .helpers import (
+from .framework_helpers import (
     aggregate_all_api_routes,
     create_api_short_documentation_prompt,
-    get_framework_name_or_crash
+    get_framework_name_or_crash,
 )
-
-RESULT_VARIABLE_NAME = "axel"
+from .natural_frontend_options import NaturalFrontendOptions
 
 API_DOC_GEN_PROMPT = []
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
-static_directory = pkg_resources.files("natural_frontend").joinpath("static")
-cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
-
-
-# Define the Options type, colors needs to be a dict with keys "primary" and "secondary"
-# And personas needs to be a list of dicts with keys "persona" and "description"
-class NaturalFrontendOptions:
-    def __init__(
-        self,
-        colors: Dict[str, str] = {"primary": "lightblue", "secondary": "purple"},
-        personas: Optional[List[Dict[str, str]]] = None,
-        cache_expiry_time: int = 600,
-        frontend_endpoint: str = "frontend",
-    ):
-        # Check that colors is a dict with keys "primary" and "secondary"
-        if not isinstance(colors, dict):
-            raise TypeError("colors must be a dict")
-        if "primary" not in colors:
-            raise ValueError("colors must have a 'primary' key")
-        if "secondary" not in colors:
-            raise ValueError("colors must have a 'secondary' key")
-
-        self.colors = colors
-
-        # Check that personas is a list of dicts with keys "persona" and "description",
-        # and there's also max 5 of them
-        if personas is not None:
-            if not isinstance(personas, list):
-                raise TypeError("personas must be a list")
-            if len(personas) > 5:
-                raise ValueError("personas must have a maximum of 5 elements")
-            for persona in personas:
-                if not isinstance(persona, dict):
-                    raise TypeError("personas must be a list of dicts")
-                if "persona" not in persona:
-                    raise ValueError("personas must have a 'persona' key")
-                if "description" not in persona:
-                    raise ValueError("personas must have a 'description' key")
-
-        self.personas = personas
-
-        # Check that cache_expiry_time is an int
-        if not isinstance(cache_expiry_time, int):
-            raise TypeError("cache_expiry_time must be an int")
-
-        self.cache_expiry_time = cache_expiry_time  # 600 seconds cache expiration time
-
-        # Check that frontend_endpoint is a string
-        if not isinstance(frontend_endpoint, str):
-            raise TypeError("frontend_endpoint must be a string")
-
-        self.frontend_endpoint = frontend_endpoint
 
 
 def NaturalFrontend(
@@ -87,8 +28,47 @@ def NaturalFrontend(
     options: NaturalFrontendOptions = NaturalFrontendOptions(),
 ):
     framework_name = get_framework_name_or_crash(app)
+    logging.info(f"Framework detected: {framework_name}")
+
+    template_directory = pkg_resources.files("natural_frontend").joinpath("templates")
+    cache_directory = pkg_resources.files("natural_frontend").joinpath("cache")
+
     if framework_name == FAST_API:
-        app.mount("/static", StaticFiles(directory=str(static_directory)), name="static")
+        from starlette.responses import HTMLResponse
+        from starlette.templating import Jinja2Templates
+        from starlette.requests import Request
+
+        from fastapi import Form
+
+    elif framework_name == FLASK:
+        from flask import request, make_response
+        from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+        class Jinja2Templates:
+            def __init__(self, directory: str):
+                self.env = Environment(
+                    loader=FileSystemLoader(directory),
+                    autoescape=select_autoescape(["html", "xml"]),
+                )
+
+            def get_template(self, template_name: str):
+                return self.env.get_template(template_name)
+
+            def TemplateResponse(self, template_name: str, context: dict):
+                """Renders a template and returns a Flask response.
+
+                Args:
+                    template_name (str): The name of the template file.
+                    context (dict): A dictionary of context variables to pass to the template.
+
+                Returns:
+                    A Flask response object with the rendered template.
+                """
+                # Using Flask's render_template function directly can also work,
+                # but here we demonstrate using Jinja2's Environment for learning purposes.
+                template = self.env.get_template(template_name)
+                html_content = template.render(context)
+                return make_response(html_content)
 
     frontend_endpoint = options.frontend_endpoint
 
@@ -99,11 +79,7 @@ def NaturalFrontend(
         directory=str(cache_directory), cache_expiry_time=options.cache_expiry_time
     )
 
-    @app.on_event("startup")
-    async def on_startup():
-        # Initialize your NLP model here
-        pass
-
+    def initiate_natural_frontend(app: Any, framework_name: str):
         # Step 1: Load the codebase and add it to the seed prompt
         aggregated_api_source = aggregate_all_api_routes(app, framework_name)
 
@@ -111,17 +87,31 @@ def NaturalFrontend(
             create_api_short_documentation_prompt(aggregated_api_source)
         )
 
-        frontend_generator.seed_prompt("FastAPI")
+        frontend_generator.seed_prompt(framework_name)
         frontend_generator.add_api_source(aggregated_api_source)
 
         logging.info("Natural Frontend was initiated successfully")
 
-    async def frontend(request: Request):
-        cache_key = "frontend_personas"
+    if framework_name == FAST_API:
 
-        # Try to get cached response
-        potential_personas = cache.get(cache_key)
-        if potential_personas:
+        @app.on_event("startup")
+        async def on_startup():
+            initiate_natural_frontend(app, framework_name)
+
+    elif framework_name == FLASK:
+        with app.app_context():
+            initiate_natural_frontend(app, framework_name)
+
+    def render_frontend_template(
+        potential_personas: List[Dict[str, str]],
+        frontend_endpoint: str,
+        request,
+    ):
+
+        nf_logo_data = pkgutil.get_data(__name__, "static/natural_frontend_logo.png")
+        natural_frontend_logo_b64 = b64encode(nf_logo_data).decode("utf-8")
+
+        if framework_name == FAST_API:
             return templates.TemplateResponse(
                 "queryForm.html",
                 {
@@ -132,7 +122,30 @@ def NaturalFrontend(
                         "pink",
                         "lightblue",
                     ],  # Replace with your actual colors
+                    "frontend_endpoint": frontend_endpoint,
+                    "natural_frontend_logo_b64": natural_frontend_logo_b64,
                 },
+            )
+        elif framework_name == FLASK:
+            return templates.get_template("queryForm.html").render(
+                potential_personas=potential_personas,
+                colors=[
+                    "green",
+                    "pink",
+                    "lightblue",
+                ],
+                frontend_endpoint=frontend_endpoint,
+                natural_frontend_logo_b64=natural_frontend_logo_b64,
+            )
+
+    def frontend(request=None):
+        cache_key = "frontend_personas"
+
+        # Try to get cached response
+        potential_personas = cache.get(cache_key)
+        if potential_personas:
+            return render_frontend_template(
+                potential_personas, frontend_endpoint, request
             )
 
         logging.info("NO CACHE HIT")
@@ -143,84 +156,30 @@ def NaturalFrontend(
 
         # Now parse it. If it does not work, query gpt-3.5 again to clean it in
         # the right format.
-        # Do a recursive function that calls gpt-3.5 if the parsing fails.
-        def parse_potential_personas(personas: str, retries=5):
-            try:
-                if retries == 0:
-                    return {"results": []}
-
-                parsed_json = json.loads(personas)
-
-                # Check the keys are correct
-                if "results" not in parsed_json:
-                    raise Exception("The key 'results' is missing")
-                if not isinstance(parsed_json["results"], list):
-                    raise Exception("The key 'results' is not a list")
-                for result in parsed_json["results"]:
-                    if "persona" not in result:
-                        raise Exception("The key 'persona' is missing")
-                    if not isinstance(result["persona"], str):
-                        raise Exception("The key 'persona' is not a string")
-                    if "description" not in result:
-                        raise Exception("The key 'description' is missing")
-                    if not isinstance(result["description"], str):
-                        raise Exception("The key 'description' is not a string")
-
-                return parsed_json
-            except Exception:
-                print("Parsing failed. Trying again...")
-                response = frontend_generator.client.chat.completions.create(
-                    model="gpt-3.5-turbo-1106",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": "The following JSON object could not be parsed. "
-                            + "Please reformat it to give me the answer as a json "
-                            + "object like "
-                            + "{results: {persona: str; description: str;}[] }"
-                            + f"\n\n{personas}\n\n",
-                        },
-                    ],
-                    response_format={"type": "json_object"},
-                )
-
-                return parse_potential_personas(
-                    response.choices[0].message.content, retries - 1
-                )
-
         potential_personas = [{"persona": "test", "description": "test"}]
 
         potential_personas = (
             options.personas if options.personas else []
-        ) + parse_potential_personas(potential_personas_str)["results"]
+        ) + frontend_generator.parse_potential_personas(potential_personas_str)[
+            "results"
+        ]
 
         cache.set(cache_key, potential_personas)
 
-        return templates.TemplateResponse(
-            "queryForm.html",
-            {
-                "request": request,
-                "potential_personas": potential_personas,
-                "colors": [
-                    "green",
-                    "pink",
-                    "lightblue",
-                ],  # Replace with your actual colors
-                "frontend_endpoint": f"{frontend_endpoint}",
-            },
-        )
+        return render_frontend_template(potential_personas, frontend_endpoint, request)
 
-    async def handle_form(request: Request, persona: str = Form(...)):
-        scheme = request.url.scheme
-        server_host = request.headers.get("host")
-        full_url = f"{scheme}://{server_host}"
+    async def async_frontend(request: Request):
+        return frontend(request)
 
-        logging.info(f"Generating frontend for url: {full_url}")
-
+    def generate_frontend(persona: str, full_url: str):
         cache_key = f"html_frontend_{persona.split()[0]}_{full_url}"
         response_content = cache.get(cache_key)
         if response_content:
-            return HTMLResponse(content=response_content)
+            return (
+                HTMLResponse(content=response_content)
+                if framework_name == FAST_API
+                else make_response(response_content)
+            )
 
         # With the query in hand, send it to the NLP model
         # Handle the processed query
@@ -230,10 +189,48 @@ def NaturalFrontend(
 
         cache.set(cache_key, response_content)
 
-        return HTMLResponse(content=response_content)
+        return (
+            HTMLResponse(content=response_content)
+            if framework_name == FAST_API
+            else make_response(response_content)
+        )
 
     if framework_name == FAST_API:
-        app.add_api_route(f"/{frontend_endpoint}", frontend, methods=["GET"], response_class=HTMLResponse)
-        app.add_api_route(f"/gen_{frontend_endpoint}", handle_form, methods=["POST"], response_class=HTMLResponse)
+
+        async def handle_form(request: Request, persona: Annotated[str, Form()]):
+            scheme = request.url.scheme
+            server_host = request.headers.get("host")
+            full_url = f"{scheme}://{server_host}"
+
+            logging.info(f"Generating frontend for url: {full_url}")
+
+            return generate_frontend(persona, full_url)
+
+        app.add_api_route(
+            f"/{frontend_endpoint}",
+            async_frontend,
+            methods=["GET"],
+            response_class=HTMLResponse,
+        )
+        app.add_api_route(
+            f"/gen_{frontend_endpoint}",
+            handle_form,
+            methods=["POST"],
+            response_class=HTMLResponse,
+        )
+
+    elif framework_name == FLASK:
+
+        def handle_form():
+            persona = request.form.get("persona")
+
+            logging.info(f"Generating frontend for url: {request.url}")
+
+            return generate_frontend(persona, request.url)
+
+        app.add_url_rule(f"/{frontend_endpoint}", "frontend", frontend, methods=["GET"])
+        app.add_url_rule(
+            f"/gen_{frontend_endpoint}", "handle_form", handle_form, methods=["POST"]
+        )
 
     return app
