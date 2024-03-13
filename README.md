@@ -12,6 +12,7 @@ https://github.com/axelpey/natural-frontend/assets/1381992/dbef93fa-6313-4122-90
 
 ## Features
 
+- Works with 2 major backend frameworks: (https://flask.palletsprojects.com/en/2.3.x/)[Flask] and (https://fastapi.tiangolo.com/)[FastAPI]
 - Natural Frontend understands your codebase and the potential user personas for your product.
 - On the `/frontend` endpoint, select a user persona and NF will generate a tailored frontend.
 
@@ -26,6 +27,8 @@ https://github.com/axelpey/natural-frontend/assets/1381992/dbef93fa-6313-4122-90
 With pip: `pip install natural-frontend`
 
 ### ➕ Add to your code
+
+#### With FastAPI
 
 Just add one-line to your api project:
 
@@ -53,6 +56,20 @@ class Book(BaseModel):
     title: str
     author: str
     genre: str
+```
+
+#### With Flask
+
+It's the same!
+
+```python
+from flask import Flask
+from natural_frontend import NaturalFrontend
+
+openai_key = "sk-..."
+
+app = Flask(__name__)
+app = NaturalFrontend(app, openai_key)
 ```
 
 ### ⚙️ Options
