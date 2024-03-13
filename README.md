@@ -1,5 +1,15 @@
 <p align=center>
 <img height="90px" src="https://github.com/axelpey/natural-frontend/assets/1381992/a11640b3-77af-4780-b40a-e3695a265091" alt="Natural Frontend Logo" />
+    
+<p align="center">
+  <a href="https://pypi.python.org/pypi/natural-frontend/">
+    <img src="https://img.shields.io/pypi/v/natural-frontend?logo=Python&logoColor=white&label=PyPI&color=c125ff" alt="pypi-version">
+  </a>
+  <a href="https://www.pepy.tech/projects/natural-frontend">
+    <img src="https://img.shields.io/pepy/dt/natural-frontend?logo=PyPI&logoColor=white&label=Downloads&color=c125ff"
+    alt="pepy-total-downloads">
+  </a>
+</p>
 
 <p align=center>
 <b>From backend to frontend with one line</b> <br /> Don't waste hours generating a frontend for your users.
