@@ -22,7 +22,7 @@ https://github.com/axelpey/natural-frontend/assets/1381992/dbef93fa-6313-4122-90
 
 ## Features
 
-- Works with 2 major backend frameworks: (https://flask.palletsprojects.com/en/2.3.x/)[Flask] and (https://fastapi.tiangolo.com/)[FastAPI]
+- Works with 2 major backend frameworks: [Flask](https://flask.palletsprojects.com/en/2.3.x/) and [FastAPI](https://fastapi.tiangolo.com/)
 - Natural Frontend understands your codebase and the potential user personas for your product.
 - On the `/frontend` endpoint, select a user persona and NF will generate a tailored frontend.
 
