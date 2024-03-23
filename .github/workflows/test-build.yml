@@ -16,14 +16,23 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.x"
-    - name: Install pypa/build
-      run: >-
-        python3 -m
-        pip install
-        build
-        --user
+    - name: cache poetry install
+      uses: actions/cache@v2
+      with:
+        path: ~/.local
+        key: poetry-1.8.2
+    - name: Install poetry
+      uses: abatilo/actions-poetry@v2
+      with:
+        version: 1.8.2
+    - name: cache deps
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry
+        key: dependencies-${{ hashFiles('**/poetry.lock') }}
+
     - name: Build a binary wheel and a source tarball
-      run: python3 -m build
+      run: poetry build
     - name: Store the distribution packages
       uses: actions/upload-artifact@v3
       with:
